@@ -1,5 +1,5 @@
 name: HostAPI
 author: MileKat
-main: fr.milekat.hostapi.HostAPI
+main: fr.milekat.hostapi.Main
 version: 0.1
 description: "API to load a host game properly"

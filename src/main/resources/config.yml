@@ -1,0 +1,13 @@
+# Debug mode
+debug: false
+# Storage system (Only mysql is supported for now)
+storage:
+  type: mysql
+  mysql:
+    prefix: "host_"
+    hostname: "localhost:3306"
+    database: "minecraft"
+    username: "user"
+    password: "pass"
+# The type can be "host" for a game server or "lobby" for a lobby server
+server-type: lobby
