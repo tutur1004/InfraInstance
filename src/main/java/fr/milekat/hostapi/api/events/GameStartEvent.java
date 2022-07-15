@@ -1,9 +1,13 @@
-package fr.milekat.hostapi.api;
+package fr.milekat.hostapi.api.events;
 
+import fr.milekat.hostapi.api.classes.ServerType;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+/**
+ * Only for {@link ServerType#HOST}
+ */
 public class GameStartEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS_LIST = new HandlerList();
     private boolean isCancelled;
