@@ -1,5 +1,7 @@
 package fr.milekat.hostapi.storage.mysql;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +13,11 @@ import java.util.List;
 /**
  * Snipped from LuckPerms plugin
  */
-public class Utils {
+public class MySQLUtils {
     /**
      * Convert file input stream into List of SQL queries
      */
-    public static List<String> getQueries(InputStream is) throws IOException {
+    public static @NotNull List<String> getQueries(InputStream is) throws IOException {
         List<String> queries = new LinkedList<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {

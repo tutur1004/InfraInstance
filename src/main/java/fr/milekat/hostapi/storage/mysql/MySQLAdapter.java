@@ -112,7 +112,7 @@ public class MySQLAdapter implements StorageExecutor {
             if (schemaFileIS == null) {
                 throw new StorageLoaderException("Missing schema file");
             }
-            statements = Utils.getQueries(schemaFileIS).stream()
+            statements = MySQLUtils.getQueries(schemaFileIS).stream()
                     .map(this::formatQuery)
                     .collect(Collectors.toList());
         }
