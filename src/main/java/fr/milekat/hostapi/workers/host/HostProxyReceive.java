@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.workers;
+package fr.milekat.hostapi.workers.host;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;

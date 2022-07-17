@@ -2,6 +2,9 @@ package fr.milekat.hostapi.workers;
 
 import fr.milekat.hostapi.Main;
 import fr.milekat.hostapi.api.classes.ServerType;
+import fr.milekat.hostapi.workers.host.GameEvents;
+import fr.milekat.hostapi.workers.host.GameState;
+import fr.milekat.hostapi.workers.host.HostProxyReceive;
 import org.bukkit.Bukkit;
 
 public class WorkerManager {

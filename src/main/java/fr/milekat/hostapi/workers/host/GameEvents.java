@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.workers;
+package fr.milekat.hostapi.workers.host;
 
 import fr.milekat.hostapi.api.API;
 import org.bukkit.event.EventHandler;
