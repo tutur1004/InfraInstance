@@ -42,7 +42,7 @@ public class GameState implements Listener {
         if (instance!=null) {
             instance.setState(InstanceState.ENDING);
             Main.getStorage().updateInstance(instance);
-            // TODO: 15/07/2022 End the server ? To be handle by the proxy maybe ?
+            // TODO: 15/07/2022 End the server ? To be handled by the proxy maybe ?
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }

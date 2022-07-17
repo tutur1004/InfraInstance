@@ -5,11 +5,12 @@ import fr.milekat.hostapi.storage.exeptions.StorageExecuteException;
 import fr.milekat.hostapi.storage.exeptions.StorageLoaderException;
 import fr.milekat.hostapi.storage.mysql.MySQLAdapter;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 public class StorageManager {
     private final StorageExecutor executor;
 
-    public StorageManager(FileConfiguration config) throws StorageLoaderException {
+    public StorageManager(@NotNull FileConfiguration config) throws StorageLoaderException {
         if (config.getString("storage.type").equalsIgnoreCase("mysql") ||
                 config.getString("storage.type").equalsIgnoreCase("mariadb")) {
             executor = new MySQLAdapter(config);

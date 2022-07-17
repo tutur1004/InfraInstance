@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("FieldCanBeLocal")
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class MySQLAdapter implements StorageExecutor {
     private final String SCHEMA_FILE = "host_schema.sql";
     private final long CACHE_DURATION = TimeUnit.MILLISECONDS.convert(30L, TimeUnit.MINUTES);
