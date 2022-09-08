@@ -15,8 +15,9 @@ import java.util.logging.Logger;
 
 public class Main extends JavaPlugin {
     public static final String HOST_UUID_ENV_VAR_NAME = "HOST_UUID";
-    public static String SERVER_NAME = "SERVER_NAME";
+    public static String INSTANCE_ID = "INSTANCE_ID";
     public static String SERVER_ID = "SERVER_ID";
+    public static String SERVER_NAME = "SERVER_NAME";
     public static final String MESSAGE_CHANNEL = "host:channel";
 
     private static JavaPlugin plugin;

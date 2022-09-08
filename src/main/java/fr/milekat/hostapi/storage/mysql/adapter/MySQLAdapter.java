@@ -46,7 +46,11 @@ public class MySQLAdapter implements StorageExecutor {
             "INNER JOIN {prefix}games g ON i.game=g.game_id " +
             "INNER JOIN {prefix}users u ON i.user=u.user_id " +
             "WHERE i.state <>4;";
-    private final String GET_INSTANCE = "SELECT * FROM {prefix}instances i " +
+    private final String GET_INSTANCE_WITH_ID = "SELECT * FROM {prefix}instances i " +
+            "INNER JOIN {prefix}games g ON i.game=g.game_id " +
+            "INNER JOIN {prefix}users u ON i.user=u.user_id " +
+            "WHERE i.state <>4 AND i.instance_id = ?;";
+    private final String GET_INSTANCE_WITH_NAME = "SELECT * FROM {prefix}instances i " +
             "INNER JOIN {prefix}games g ON i.game=g.game_id " +
             "INNER JOIN {prefix}users u ON i.user=u.user_id " +
             "WHERE i.state <>4 AND i.instance_name = ?;";
@@ -336,13 +340,32 @@ public class MySQLAdapter implements StorageExecutor {
 
     /**
      * Query an instance
+     * @param id of instance
+     * @return instance (If exist)
+     */
+    @Override
+    public @Nullable Instance getInstance(int id) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(GET_INSTANCE_WITH_ID))) {
+            q.setInt(1, id);
+            q.execute();
+            if (q.getResultSet().next()) {
+                return resultSetToInstance(q.getResultSet());
+            } else return null;
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    /**
+     * Query an instance
      * @param name of instance
      * @return instance (If exist)
      */
     @Override
     public @Nullable Instance getInstance(String name) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
-             PreparedStatement q = connection.prepareStatement(formatQuery(GET_INSTANCE))) {
+             PreparedStatement q = connection.prepareStatement(formatQuery(GET_INSTANCE_WITH_NAME))) {
             q.setString(1, name);
             q.execute();
             if (q.getResultSet().next()) {

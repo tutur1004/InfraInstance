@@ -14,12 +14,17 @@ import org.bukkit.event.server.PluginEnableEvent;
  * Update storage instance states values
  */
 public class GameState implements Listener {
+    private final Instance thisHost;
+
+    public GameState(Instance thisHost) throws StorageExecuteException {
+        this.thisHost = thisHost;
+    }
+
     @EventHandler
     public void onGameReady(PluginEnableEvent event) throws StorageExecuteException {
-        Instance instance = Main.getStorage().getInstance(Main.SERVER_NAME);
-        if (instance!=null) {
-            instance.setState(InstanceState.READY);
-            Main.getStorage().updateInstance(instance);
+        if (thisHost!=null) {
+            thisHost.setState(InstanceState.READY);
+            Main.getStorage().updateInstance(thisHost);
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }
@@ -27,10 +32,9 @@ public class GameState implements Listener {
 
     @EventHandler
     public void onGameStart(GameStartEvent event) throws StorageExecuteException {
-        Instance instance = Main.getStorage().getInstance(Main.SERVER_NAME);
-        if (instance!=null) {
-            instance.setState(InstanceState.IN_PROGRESS);
-            Main.getStorage().updateInstance(instance);
+        if (thisHost!=null) {
+            thisHost.setState(InstanceState.IN_PROGRESS);
+            Main.getStorage().updateInstance(thisHost);
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }
@@ -38,10 +42,9 @@ public class GameState implements Listener {
 
     @EventHandler
     public void onGameFinish(GameFinishedEvent event) throws StorageExecuteException {
-        Instance instance = Main.getStorage().getInstance(Main.SERVER_NAME);
-        if (instance!=null) {
-            instance.setState(InstanceState.ENDING);
-            Main.getStorage().updateInstance(instance);
+        if (thisHost!=null) {
+            thisHost.setState(InstanceState.ENDING);
+            Main.getStorage().updateInstance(thisHost);
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }

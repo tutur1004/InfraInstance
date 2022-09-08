@@ -94,6 +94,14 @@ public interface StorageExecutor {
 
     /**
      * Query an instance
+     * @param id of instance
+     * @return instance (If exist)
+     */
+    @Nullable
+    Instance getInstance(int id) throws StorageExecuteException;
+
+    /**
+     * Query an instance
      * @param name of instance
      * @return instance (If exist)
      */
