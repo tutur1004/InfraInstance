@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.storage.mysql;
+package fr.milekat.hostapi.storage.mysql.adapter;
 
 import org.jetbrains.annotations.NotNull;
 

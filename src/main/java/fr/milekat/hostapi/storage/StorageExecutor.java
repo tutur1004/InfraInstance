@@ -5,6 +5,7 @@ import fr.milekat.hostapi.api.classes.Instance;
 import fr.milekat.hostapi.api.classes.Log;
 import fr.milekat.hostapi.api.classes.User;
 import fr.milekat.hostapi.storage.exeptions.StorageExecuteException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
@@ -38,18 +39,16 @@ public interface StorageExecutor {
     /**
      * Add tickets to this player
      * @param uuid player uuid
-     * @param username player minecraft username
      * @param amount amount of tickets to add to this player
      */
-    void addPlayerTickets(UUID uuid, String username, Integer amount) throws StorageExecuteException;
+    void addPlayerTickets(UUID uuid, Integer amount) throws StorageExecuteException;
 
     /**
      * Remove tickets to this player
      * @param uuid player uuid
-     * @param username player minecraft username
      * @param amount amount of tickets to remove to this player
      */
-    void removePlayerTickets(UUID uuid, String username, Integer amount) throws StorageExecuteException;
+    void removePlayerTickets(UUID uuid, Integer amount) throws StorageExecuteException;
 
     /*
         Games
@@ -104,12 +103,42 @@ public interface StorageExecutor {
     /**
      * Create a new instance
      */
-    void createInstance(Instance instance) throws StorageExecuteException;
+    Instance createInstance(Instance instance) throws StorageExecuteException;
 
     /**
      * Save an instance
      */
     void updateInstance(Instance instance) throws StorageExecuteException;
+
+    /**
+     * Update {@link Instance#getName()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceName(@NotNull Instance instance) throws StorageExecuteException;
+
+    /**
+     * Update {@link Instance#getState()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceState(@NotNull Instance instance) throws StorageExecuteException;
+
+    /**
+     * Update {@link Instance#getHostname()} & {@link Instance#getPort()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceAddress(@NotNull Instance instance) throws StorageExecuteException;
+
+    /**
+     * Update {@link Instance#getCreation()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceCreation(@NotNull Instance instance) throws StorageExecuteException;
+
+    /**
+     * Update {@link Instance#getDeletion()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceDeletion(@NotNull Instance instance) throws StorageExecuteException;
 
     /**
      * Find an available port in given list
@@ -143,6 +172,27 @@ public interface StorageExecutor {
      */
     @Nullable
     User getUser(UUID uuid) throws StorageExecuteException;
+
+    /**
+     * Create or Update user if exist
+     * @param uuid uuid of this user
+     * @param username last username known
+     */
+    void updateUser(@NotNull UUID uuid, String username) throws StorageExecuteException;
+
+    /**
+     * Update if exist a player
+     * @param user profile
+     */
+    void updateUser(@NotNull User user) throws StorageExecuteException;
+
+    /**
+     * Update user (If exist)
+     * @param uuid profile
+     * @param username last username
+     * @param amount of tickets
+     */
+    void updateUser(@NotNull UUID uuid, String username, Integer amount) throws StorageExecuteException;
 
     /*
         Logs

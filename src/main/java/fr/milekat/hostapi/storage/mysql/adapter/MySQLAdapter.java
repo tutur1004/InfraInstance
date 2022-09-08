@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.storage.mysql;
+package fr.milekat.hostapi.storage.mysql.adapter;
 
 import fr.milekat.hostapi.Main;
 import fr.milekat.hostapi.api.classes.*;
@@ -24,7 +24,8 @@ public class MySQLAdapter implements StorageExecutor {
     private final long CACHE_DURATION = TimeUnit.MILLISECONDS.convert(30L, TimeUnit.MINUTES);
     private final MySQLPool DB;
     private final String PREFIX = Main.getFileConfig().getString("storage.mysql.prefix");
-    private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs", PREFIX + "users");
+    private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
+            PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
     private Date CACHED_GAMES_REFRESH = null;
     private List<Game> CACHED_GAMES = new ArrayList<>();
 
@@ -57,23 +58,38 @@ public class MySQLAdapter implements StorageExecutor {
             "WHERE (l.log_date BETWEEN ? AND ?);";
     private final String FIND_AVAILABLE_PORTS = "SELECT port FROM {prefix}instances " +
             "WHERE state <>4;";
+    private final String FETCH_GAME_CONFIGS = "SELECT props.property_name as var, props.value as val " +
+            "FROM {prefix}properties props " +
+            "INNER JOIN {prefix}profiles prof ON props.profile=prof.profile_id " +
+            "LEFT JOIN {prefix}game_strategies str ON props.profile=str.profile " +
+            "WHERE props.enable=1 AND (prof.profile_name='global' OR (str.game=? AND prof.enable=1)) " +
+            "ORDER BY props.profile DESC;";
 
-    private final String ADD_TICKETS = "INSERT INTO {prefix}users (uuid, last_name, tickets) " +
-            "VALUES (?,?,?) ON DUPLICATE KEY UPDATE last_name = ?, tickets = tickets + ?;";
-    private final String REMOVE_TICKETS = "INSERT INTO {prefix}users (uuid, last_name, tickets) " +
-            "VALUES (?,?,?) ON DUPLICATE KEY UPDATE last_name = ?, tickets = tickets - ?;";
+    private final String ADD_TICKETS = "UPDATE {prefix}users SET tickets = tickets + ? WHERE uuid=?;";
+    private final String REMOVE_TICKETS = "UPDATE {prefix}users SET tickets = tickets - ? WHERE uuid=?;";
     private final String CREATE_GAME = "INSERT INTO {prefix}games " +
             "(name, enable, image, requirements) " +
             "VALUES (?,?,?,?);";
     private final String CREATE_INSTANCE = "INSERT INTO {prefix}instances " +
-            "(instance_name, instance_description, instance_server_id, port, state, game, user, creation) " +
-            "VALUES (?,?,?,?,?,?,?,?);";
+            "(instance_name, instance_description, port, game, user) VALUES (?,?,?,?,?);";
 
     private final String UPDATE_GAME = "UPDATE {prefix}games " +
             "SET name=?, enable=?, image=?, requirements=?";
-    private final String UPDATE_INSTANCE = "UPDATE {prefix}instances " +
-            "SET instance_server_id=?, state=?, game=?, user=? " +
-            "WHERE instance_name = ?";
+    private final String UPDATE_INSTANCE_FULL = "UPDATE {prefix}instances " +
+            "SET instance_name=?, instance_server_id=?, instance_description=?, instance_message=?, " +
+            "hostname=?, port=?, state=?, game=?, user=? " +
+            "WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_NAME = "UPDATE {prefix}instances SET instance_name=? WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_STATE = "UPDATE {prefix}instances SET state=? WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_ADDRESS = "UPDATE {prefix}instances " +
+            "SET hostname=?, port=? WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_CREATION = "UPDATE {prefix}instances " +
+            "SET creation=? WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_DELETION = "UPDATE {prefix}instances " +
+            "SET deletion=? WHERE instance_id = ?";
+    private final String UPDATE_USER = "UPDATE {prefix}users SET uuid=?, last_name=?, tickets=? WHERE uuid=?;";
+    private final String UPDATE_CREATE_USER = "INSERT INTO {prefix}users (uuid, last_name) " +
+            "VALUES (?,?) ON DUPLICATE KEY UPDATE last_name = ?;";
 
     /**
      * Format query by replacing {prefix} with {@link MySQLAdapter#PREFIX}
@@ -118,7 +134,7 @@ public class MySQLAdapter implements StorageExecutor {
         }
         //  Apply Schema
         try (Connection connection = DB.getConnection();
-                Statement s = connection.createStatement()) {
+             Statement s = connection.createStatement()) {
             connection.setAutoCommit(false);
             for (String query : statements) {
                 s.addBatch(query);
@@ -183,23 +199,32 @@ public class MySQLAdapter implements StorageExecutor {
     /**
      * Add tickets to this player
      * @param uuid player uuid
-     * @param username player minecraft username
      * @param amount amount of tickets to add to this player
      */
     @Override
-    public void addPlayerTickets(UUID uuid, String username, Integer amount) throws StorageExecuteException {
-        updateUser(uuid, username, amount, ADD_TICKETS);
+    public void addPlayerTickets(UUID uuid, Integer amount) throws StorageExecuteException {
+        updateUserTickets(uuid, amount, ADD_TICKETS);
     }
 
     /**
      * Remove tickets to this player
      * @param uuid player uuid
-     * @param username player minecraft username
      * @param amount amount of tickets to remove to this player
      */
     @Override
-    public void removePlayerTickets(UUID uuid, String username, Integer amount) throws StorageExecuteException {
-        updateUser(uuid, username, amount, REMOVE_TICKETS);
+    public void removePlayerTickets(UUID uuid, Integer amount) throws StorageExecuteException {
+        updateUserTickets(uuid, amount, REMOVE_TICKETS);
+    }
+
+    private void updateUserTickets(@NotNull UUID uuid, Integer amount, String query) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(query))) {
+            q.setInt(1, amount);
+            q.setString(2, uuid.toString());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
     }
 
     /*
@@ -329,18 +354,16 @@ public class MySQLAdapter implements StorageExecutor {
     }
 
     @Override
-    public void createInstance(@NotNull Instance instance) throws StorageExecuteException {
+    public Instance createInstance(@NotNull Instance instance) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
              PreparedStatement q = connection.prepareStatement(formatQuery(CREATE_INSTANCE))) {
             q.setString(1, instance.getName());
             q.setString(2, instance.getDescription());
-            q.setString(3, instance.getServerId());
-            q.setInt(4, instance.getPort());
-            q.setInt(5, instance.getState().getStateId());
-            q.setInt(6, instance.getGame().getId());
-            q.setInt(7, instance.getHost().getId());
-            q.setTimestamp(8, new Timestamp(instance.getCreation().getTime()));
+            q.setInt(3, instance.getPort());
+            q.setInt(4, instance.getGame().getId());
+            q.setInt(5, instance.getUser().getId());
             q.execute();
+            return getInstance(instance.getName());
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
         }
@@ -349,12 +372,80 @@ public class MySQLAdapter implements StorageExecutor {
     @Override
     public void updateInstance(@NotNull Instance instance) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
-             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE))) {
-            q.setString(1, instance.getServerId());
-            q.setInt(2, instance.getState().getStateId());
-            q.setInt(3, instance.getGame().getId());
-            q.setInt(4, instance.getHost().getId());
-            q.setString(5, instance.getName());
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_FULL))) {
+            q.setString(1, instance.getName());
+            q.setString(2, instance.getServerId());
+            q.setString(3, instance.getDescription());
+            q.setString(4, instance.getMessage());
+            q.setString(5, instance.getHostname());
+            q.setInt(6, instance.getPort());
+            q.setInt(7, instance.getState().getStateId());
+            q.setInt(8, instance.getGame().getId());
+            q.setInt(9, instance.getUser().getId());
+            q.setInt(10, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
+    public void updateInstanceName(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_NAME))) {
+            q.setString(1, instance.getName());
+            q.setInt(2, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
+    public void updateInstanceState(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_STATE))) {
+            q.setInt(1, instance.getState().getStateId());
+            q.setInt(2, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
+    public void updateInstanceAddress(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_ADDRESS))) {
+            q.setString(1, instance.getHostname());
+            q.setInt(2, instance.getPort());
+            q.setInt(3, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
+    public void updateInstanceCreation(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_CREATION))) {
+            if (instance.getCreation()==null) return;
+            q.setTimestamp(1, new Timestamp(instance.getCreation().getTime()));
+            q.setInt(2, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
+    public void updateInstanceDeletion(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_DELETION))) {
+            if (instance.getDeletion()==null) return;
+            q.setTimestamp(1, new Timestamp(instance.getDeletion().getTime()));
+            q.setInt(2, instance.getId());
             q.execute();
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -441,14 +532,47 @@ public class MySQLAdapter implements StorageExecutor {
         }
     }
 
-    private void updateUser(@NotNull UUID uuid, String username, Integer amount, String query) throws StorageExecuteException {
+    /**
+     * Create or Update user if exist
+     * @param uuid uuid of this user
+     * @param username last username known
+     */
+    @Override
+    public void updateUser(@NotNull UUID uuid, String username) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
-             PreparedStatement q = connection.prepareStatement(formatQuery(query))) {
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_CREATE_USER))) {
+            q.setString(1, uuid.toString());
+            q.setString(2, username);
+            q.setString(3, username);
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    /**
+     * Update user (If exist)
+     * @param user profile
+     */
+    @Override
+    public void updateUser(@NotNull User user) throws StorageExecuteException {
+        updateUser(user.getUuid(), user.getLastName(), user.getTickets());
+    }
+
+    /**
+     * Update user (If exist)
+     * @param uuid profile
+     * @param username last username
+     * @param amount of tickets
+     */
+    @Override
+    public void updateUser(@NotNull UUID uuid, String username, Integer amount) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_USER))) {
             q.setString(1, uuid.toString());
             q.setString(2, username);
             q.setInt(3, amount);
-            q.setString(4, username);
-            q.setInt(5, amount);
+            q.setString(4, uuid.toString());
             q.execute();
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -508,17 +632,26 @@ public class MySQLAdapter implements StorageExecutor {
      */
     @Contract("_ -> new")
     private @NotNull Instance resultSetToInstance(@NotNull ResultSet r) throws SQLException {
+        Date creation = null;
+        Date deletion = null;
+        if (r.getTimestamp("creation")!=null) {
+            creation = new Date(r.getTimestamp("creation").getTime());
+        }
+        if (r.getTimestamp("deletion")!=null) {
+            deletion = new Date(r.getTimestamp("deletion").getTime());
+        }
         return new Instance(r.getInt("instance_id"),
                 r.getString("instance_name"),
                 r.getString("instance_server_id"),
                 r.getString("instance_description"),
                 r.getString("instance_message"),
+                r.getString("hostname"),
                 r.getInt("port"),
                 InstanceState.fromInteger(r.getInt("state")),
                 resultSetToGame(r),
                 resultSetToUser(r),
-                new Date(r.getTimestamp("creation").getTime()),
-                new Date(r.getTimestamp("deletion").getTime())
+                creation,
+                deletion
         );
     }
 
@@ -527,11 +660,6 @@ public class MySQLAdapter implements StorageExecutor {
      */
     @Contract("_ -> new")
     private @NotNull Game resultSetToGame(@NotNull ResultSet r) throws SQLException {
-        Map<String, String> envVars = new HashMap<>();
-        Arrays.stream(r.getString("configs").split(";")).forEach(var -> {
-            String[] splitKeyValue = var.split("=", 2);
-            if (splitKeyValue.length==2) envVars.put(splitKeyValue[0], splitKeyValue[1]);
-        });
         return new Game(r.getInt("game_id"),
                 r.getString("game_name"),
                 new Date(r.getTimestamp("create_date").getTime()),
@@ -540,7 +668,7 @@ public class MySQLAdapter implements StorageExecutor {
                 r.getString("server_version"),
                 r.getString("image"),
                 r.getInt("requirements"),
-                envVars);
+                fetchConfigs(r.getInt("game_id")));
     }
 
     /**
@@ -564,5 +692,21 @@ public class MySQLAdapter implements StorageExecutor {
                 UUID.fromString(r.getString("uuid")),
                 r.getString("last_name"),
                 r.getInt("tickets"));
+    }
+
+    /**
+     * Shortcut to fetch all game configs
+     */
+    private @NotNull Map<String, String> fetchConfigs(int gameId) throws SQLException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(FETCH_GAME_CONFIGS))) {
+            q.setInt(1, gameId);
+            q.execute();
+            Map<String, String> configs = new HashMap<>();
+            while (q.getResultSet().next()) {
+                configs.put(q.getResultSet().getString("var"), q.getResultSet().getString("val"));
+            }
+            return configs;
+        }
     }
 }
