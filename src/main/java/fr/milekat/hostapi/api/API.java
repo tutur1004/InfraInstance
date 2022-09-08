@@ -132,7 +132,7 @@ public class API {
      * @param player {@link Player}
      */
     public static void addPlayerTickets(@NotNull Player player, Integer amount) throws StorageExecuteException {
-        EXECUTOR.addPlayerTickets(player.getUniqueId(), player.getName(), amount);
+        EXECUTOR.addPlayerTickets(player.getUniqueId(), amount);
     }
 
     /*
