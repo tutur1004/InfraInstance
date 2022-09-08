@@ -10,7 +10,7 @@ compileJava {
 
 jar {
     from('src/main/java') {
-        include "fr/milekat/hostapi/storage/mysql/adapter/host_schema.sql"
+        include "fr/milekat/hostapi/storage/adapter/mysql/host_schema.sql"
     }
     actions = [] as List<Action<? super Task>>
     dependsOn('shadowJar')
@@ -18,7 +18,7 @@ jar {
 
 shadowJar{
     from('src/main/java') {
-        include "fr/milekat/hostapi/storage/mysql/adapter/host_schema.sql"
+        include "fr/milekat/hostapi/storage/adapter/mysql/host_schema.sql"
     }
     getArchiveClassifier().set(null)
 }

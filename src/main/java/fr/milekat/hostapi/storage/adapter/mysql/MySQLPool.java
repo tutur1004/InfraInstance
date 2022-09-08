@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.storage.mysql.adapter;
+package fr.milekat.hostapi.storage.adapter.mysql;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

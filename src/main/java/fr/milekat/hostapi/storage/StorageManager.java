@@ -3,7 +3,7 @@ package fr.milekat.hostapi.storage;
 import fr.milekat.hostapi.Main;
 import fr.milekat.hostapi.storage.exeptions.StorageExecuteException;
 import fr.milekat.hostapi.storage.exeptions.StorageLoaderException;
-import fr.milekat.hostapi.storage.mysql.adapter.MySQLAdapter;
+import fr.milekat.hostapi.storage.adapter.mysql.MySQLAdapter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
