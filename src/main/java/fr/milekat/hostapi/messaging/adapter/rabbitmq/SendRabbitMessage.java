@@ -1,0 +1,77 @@
+package fr.milekat.hostapi.messaging.adapter.rabbitmq;
+
+import com.google.gson.Gson;
+import com.rabbitmq.client.BuiltinExchangeType;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import fr.milekat.hostapi.Main;
+import fr.milekat.hostapi.messaging.Messaging;
+import fr.milekat.hostapi.messaging.MessagingCase;
+import fr.milekat.hostapi.messaging.exeptions.MessagingLoaderException;
+import fr.milekat.hostapi.messaging.exeptions.MessagingSendException;
+import org.bukkit.entity.Player;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+
+public class SendRabbitMessage implements Messaging {
+    private final ConnectionFactory factory;
+
+    public SendRabbitMessage() throws MessagingLoaderException {
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(Main.getFileConfig().getString("messaging.rabbit-mq.hostname"));
+        connectionFactory.setPort(Main.getFileConfig().getInt("messaging.rabbit-mq.port"));
+        connectionFactory.setUsername(Main.getFileConfig().getString("messaging.rabbit-mq.username"));
+        connectionFactory.setPassword(Main.getFileConfig().getString("messaging.rabbit-mq.password"));
+        try (Connection connection = connectionFactory.newConnection();
+             Channel channel = connection.createChannel()) {
+            channel.exchangeDeclare(Messaging.RABBIT_EXCHANGE, BuiltinExchangeType.TOPIC);
+            channel.queueDeclare(RABBIT_PUBLISHER_QUEUE, false, true, true, null);
+            channel.queueBind(RABBIT_PUBLISHER_QUEUE, RABBIT_EXCHANGE, RABBIT_PUBLISHER_ROUTING_KEY);
+        } catch (IOException | TimeoutException exception) {
+            throw new MessagingLoaderException("Error while trying to init RabbitMQ sending");
+        }
+        this.factory = connectionFactory;
+    }
+
+    @Override
+    public boolean checkSending() throws MessagingSendException {
+        try (Connection connection = this.factory.newConnection();
+             Channel channel = connection.createChannel()) {
+            channel.basicPublish(RABBIT_EXCHANGE, RABBIT_PUBLISHER_ROUTING_KEY, null,
+                    "checkSending".getBytes(StandardCharsets.UTF_8));
+            return true;
+        } catch (Exception exception) {
+            throw new MessagingSendException(exception, "Error while trying to send message");
+        }
+    }
+
+    @Override
+    public void disconnect() {
+        //  Nothing to do with RabbitMQ :)
+    }
+
+    /**
+     * Send a message to the proxy server
+     * @param p source player
+     * @param mCase Type of message
+     * @param message to send
+     */
+    @Override
+    public void sendProxyMessage(Player p, MessagingCase mCase, List<String> message) throws MessagingSendException {
+        try (Connection connection = this.factory.newConnection();
+             Channel channel = connection.createChannel()) {
+            ArrayList<String> list = new ArrayList<>();
+            list.add(mCase.name());
+            list.addAll(message);
+            channel.basicPublish(RABBIT_EXCHANGE, RABBIT_PUBLISHER_ROUTING_KEY, null,
+                    new Gson().toJson(list).getBytes(StandardCharsets.UTF_8));
+        } catch (Exception exception) {
+            throw new MessagingSendException(exception, "Error while trying to send message");
+        }
+    }
+}

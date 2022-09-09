@@ -9,5 +9,20 @@ storage:
     database: "minecraft"
     username: "user"
     password: "pass"
-# The type can be "host" for a game server or "lobby" for a lobby server, if you only need the API you can set "none"
+# Messaging system
+messaging:
+  # Available types:
+  #   RabbitMQ: Recommended ! 100% Working !
+  #     ! RabbitMQ's connection need to be setup in messaging.rabbit-mq section !
+  #   Plugin: Not fully working, currently not recommended
+  #   None: If you only need the API, without other plugin functions
+  type: None
+  rabbit-mq:
+    prefix: "HOST_"
+    hostname: "localhost"
+    port: 5672
+    username: "user"
+    password: "pass"
+# The type can be "host" for a game server or "lobby" for a lobby server
+# If you only need the API you can set "none"
 server-type: lobby

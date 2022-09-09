@@ -1,4 +1,4 @@
-package fr.milekat.hostapi.workers.host;
+package fr.milekat.hostapi.workers.host.listeners;
 
 import fr.milekat.hostapi.Main;
 import fr.milekat.hostapi.api.classes.Instance;
