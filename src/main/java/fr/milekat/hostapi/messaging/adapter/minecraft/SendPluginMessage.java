@@ -3,7 +3,6 @@ package fr.milekat.hostapi.messaging.adapter.minecraft;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import fr.milekat.hostapi.Main;
-import fr.milekat.hostapi.api.classes.ServerType;
 import fr.milekat.hostapi.messaging.Messaging;
 import fr.milekat.hostapi.messaging.MessagingCase;
 import fr.milekat.hostapi.messaging.exeptions.MessagingSendException;
@@ -15,7 +14,7 @@ import java.util.List;
 
 public class SendPluginMessage implements Messaging {
     List<MessagingCase> pmAllowedCases = Arrays.asList(MessagingCase.HOST_JOINED,
-            MessagingCase.HOST_INVITE_PLAYER, MessagingCase.ASK_CREATE_HOST);
+            MessagingCase.HOST_INVITE_PLAYER, MessagingCase.HOST_DENIED_REQUEST, MessagingCase.ASK_CREATE_HOST);
 
     @Override
     public boolean checkSending() {
@@ -29,20 +28,19 @@ public class SendPluginMessage implements Messaging {
 
     /**
      * Send a message to the proxy server
-     * @param p source player
-     * @param mCase Type of message
+     *
+     * @param p       source player
+     * @param target  Targeted channel (MainChannel for PluginMessage)
+     * @param mCase   Type of message
      * @param message to send
      */
     @Override
-    public void sendProxyMessage(Player p, MessagingCase mCase, List<String> message) throws MessagingSendException {
+    public void sendProxyMessage(Player p, String target, MessagingCase mCase, List<String> message)
+            throws MessagingSendException {
         if (pmAllowedCases.contains(mCase)) {
             try {
                 @SuppressWarnings("UnstableApiUsage") ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
-                    out.writeUTF(Main.SERVER_ID);
-                } else {
-                    out.writeUTF(Main.SERVER_TYPE.name());
-                }
+                out.writeUTF(target);
                 out.writeUTF(mCase.name());
                 message.forEach(out::writeUTF);
                 p.sendPluginMessage(Main.getInstance(), Main.MESSAGE_CHANNEL, out.toByteArray());

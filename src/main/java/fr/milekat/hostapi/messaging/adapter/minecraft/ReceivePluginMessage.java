@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import fr.milekat.hostapi.Main;
 import fr.milekat.hostapi.api.classes.ServerType;
+import fr.milekat.hostapi.messaging.Messaging;
 import fr.milekat.hostapi.workers.host.messaging.HostProxyReceive;
 import fr.milekat.hostapi.workers.lobby.LobbyProxyReceive;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public class ReceivePluginMessage implements PluginMessageListener {
                 message.add(line);
                 line = in.readLine();
             } while (line!=null);
-            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.equalsIgnoreCase(ServerType.LOBBY.name())) {
+            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.equalsIgnoreCase(Messaging.TARGET_TO_LOBBY)) {
                 //  Check if message is addressed to this lobby
                 new LobbyProxyReceive(); // TODO: 08/09/2022 LobbyProxyReceive
             } else if (Main.SERVER_TYPE.equals(ServerType.HOST) && subChannel.equalsIgnoreCase(Main.SERVER_ID)) {

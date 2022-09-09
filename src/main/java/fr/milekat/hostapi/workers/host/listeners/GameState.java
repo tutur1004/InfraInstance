@@ -5,7 +5,9 @@ import fr.milekat.hostapi.api.classes.Instance;
 import fr.milekat.hostapi.api.classes.InstanceState;
 import fr.milekat.hostapi.api.events.GameFinishedEvent;
 import fr.milekat.hostapi.api.events.GameStartEvent;
+import fr.milekat.hostapi.messaging.exeptions.MessagingSendException;
 import fr.milekat.hostapi.storage.exeptions.StorageExecuteException;
+import fr.milekat.hostapi.workers.host.messaging.HostProxySend;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
@@ -21,10 +23,11 @@ public class GameState implements Listener {
     }
 
     @EventHandler
-    public void onGameReady(PluginEnableEvent event) throws StorageExecuteException {
+    public void onGameReady(PluginEnableEvent event) throws StorageExecuteException, MessagingSendException {
         if (thisHost!=null) {
             thisHost.setState(InstanceState.READY);
             Main.getStorage().updateInstance(thisHost);
+            HostProxySend.notifyGameReady();
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }
@@ -41,10 +44,11 @@ public class GameState implements Listener {
     }
 
     @EventHandler
-    public void onGameFinish(GameFinishedEvent event) throws StorageExecuteException {
+    public void onGameFinish(GameFinishedEvent event) throws StorageExecuteException, MessagingSendException {
         if (thisHost!=null) {
             thisHost.setState(InstanceState.ENDING);
             Main.getStorage().updateInstance(thisHost);
+            HostProxySend.notifyGameFinish();
         } else {
             Main.getHostLogger().warning("Host instance not found");
         }

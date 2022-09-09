@@ -8,15 +8,15 @@ public enum MessagingCase {
 
     //  From Host To Proxy
     GAME_READY,
-    HOST_JOINED,
     GAME_FINISHED,
+    HOST_JOINED,
 
     HOST_INVITE_PLAYER,
     HOST_DENIED_REQUEST,
 
     //  From Lobby To Host
-    JOIN_REQUEST,
+    JOIN_REQUEST,               // TODO
 
     //  From Lobby To Proxy
-    ASK_CREATE_HOST,
+    ASK_CREATE_HOST,            // TODO
 }

@@ -10,10 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface Messaging {
+    String TARGET_TO_PROXY = "HOST_PROXY";
+    String TARGET_TO_LOBBY = "HOST_LOBBY_#";
+
     String HOST_RABBIT_PREFIX = Main.getFileConfig().getString("messaging.rabbit-mq.prefix");
     String RABBIT_EXCHANGE = HOST_RABBIT_PREFIX + "EXCHANGE";
     String RABBIT_CONSUMER_ROUTING_KEY = HOST_RABBIT_PREFIX + "ROUTING_KEY_" + getIdentifier();
-    String RABBIT_PUBLISHER_ROUTING_KEY = HOST_RABBIT_PREFIX + "ROUTING_KEY_" + getIdentifier();
     String RABBIT_CONSUMER_QUEUE = HOST_RABBIT_PREFIX + "CONSUMER_QUEUE_" + getIdentifier();
     String RABBIT_PUBLISHER_QUEUE = HOST_RABBIT_PREFIX + "PUBLISHER_QUEUE_" + getIdentifier();
 
@@ -34,11 +36,14 @@ public interface Messaging {
 
     /**
      * Send a message to the proxy server
-     * @param player source player
-     * @param mCase Type of message
+     *
+     * @param player  source player
+     * @param target  Targeted channel (MainChannel for PluginMessage, RoutingKey for RabbitMQ)
+     * @param mCase   Type of message
      * @param message to send
      */
-    void sendProxyMessage(Player player, MessagingCase mCase, List<String> message) throws MessagingSendException;
+    void sendProxyMessage(Player player, String target, MessagingCase mCase, List<String> message)
+            throws MessagingSendException;
 
     /**
      * Disconnect from the message provider
