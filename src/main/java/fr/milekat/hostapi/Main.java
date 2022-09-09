@@ -23,8 +23,8 @@ public class Main extends JavaPlugin {
     public static final String HOST_UUID_ENV_VAR_NAME = "HOST_UUID";
     public static Player HOST_PLAYER;
     public static HostAccess HOST_ACCESS = new HostAccess();
-    public static Map<String, UUID> WHITE_LIST = new HashMap<>();
-    public static Map<String, UUID> WAIT_LIST = new HashMap<>();
+    public static Map<UUID, String> WHITE_LIST = new HashMap<>();
+    public static Map<UUID, String> WAIT_LIST = new HashMap<>();
 
     public static final Integer INSTANCE_ID = Integer.parseInt(
             System.getenv("INSTANCE_ID") == null ? "0" : System.getenv("INSTANCE_ID"));
