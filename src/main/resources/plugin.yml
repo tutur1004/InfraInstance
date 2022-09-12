@@ -3,3 +3,9 @@ author: MileKat
 main: fr.milekat.infra.Main
 version: 0.1
 description: "API/Plugin to manage an instance or api to access storage"
+commands:
+  host:
+    description: "Open the main gui (Only for host)"
+    usage: /host
+    aliases:
+      - h

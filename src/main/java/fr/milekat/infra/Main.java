@@ -9,6 +9,7 @@ import fr.milekat.infra.storage.StorageManager;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
 import fr.milekat.infra.workers.WorkerManager;
 import fr.milekat.infra.workers.host.HostAccess;
+import fr.minuskube.inv.InventoryManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,6 +35,7 @@ public class Main extends JavaPlugin {
     public static final String VERSION = System.getenv("VERSION");
 
     private static JavaPlugin plugin;
+    public static InventoryManager INVENTORY_MANAGER;
     private static FileConfiguration configFile;
     public static ServerType SERVER_TYPE;
     public static Boolean DEBUG = false;
@@ -43,6 +45,8 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
+        INVENTORY_MANAGER = new InventoryManager(plugin);
+        INVENTORY_MANAGER.init();
         configFile = this.getConfig();
         DEBUG = configFile.getBoolean("debug");
         SERVER_TYPE = ServerType.valueOf(configFile.getString("server-type").toUpperCase(Locale.ROOT));
@@ -63,7 +67,7 @@ public class Main extends JavaPlugin {
                 getOwnLogger().warning("Error: " + exception.getLocalizedMessage());
             }
         }
-        new WorkerManager();
+        new WorkerManager(this);
         //  Load messaging (Optional since this plugin can be used only as an API)
         try {
             LOADED_MESSAGING = new MessagingManager(configFile);

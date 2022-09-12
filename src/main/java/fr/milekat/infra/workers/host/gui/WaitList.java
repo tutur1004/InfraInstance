@@ -12,6 +12,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +22,11 @@ import java.util.List;
 public class WaitList {
     private static final SmartInventory INVENTORY = SmartInventory.builder()
             .id("waitingGui")
+            .manager(Main.INVENTORY_MANAGER)
             .provider(new WaitList.MainProvider())
             .size(6, 9)
             .title(ChatColor.DARK_AQUA + "Waiting list")
-            .closeable(false)
+            .closeable(true)
             .build();
 
     /**
@@ -35,9 +38,8 @@ public class WaitList {
 
     private static class MainProvider implements InventoryProvider {
         @Override
-        public void init(Player player, InventoryContents contents) {
-            contents.fillBorders(ClickableItem.empty(new ItemStack(Material.STAINED_GLASS_PANE,
-                    0, new Integer(15).shortValue())));
+        public void init(@NotNull Player player, @NotNull InventoryContents contents) {
+            contents.fillBorders(MainGui.empty());
             Pagination pagination = contents.pagination();
 
             updatePages(pagination);
@@ -48,8 +50,8 @@ public class WaitList {
                         PlayerHead.getTextureSkull(PlayerHead.Arrow_Left, "Previous"),
                         e -> INVENTORY.open(player, pagination.previous().getPage())));
             }
-            contents.set(5, 4, ClickableItem.of(new ItemStack(Material.BARRIER), e ->
-                    INVENTORY.close(player)));
+            //  Close GUI
+            contents.set(5, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
             if (!pagination.isLast()) {
                 contents.set(5, 8, ClickableItem.of(
                         PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
@@ -75,6 +77,17 @@ public class WaitList {
                     })
             ));
             pagination.setItems(waiters.toArray(new ClickableItem[0]));
+        }
+
+        /**
+         * Get close button ItemStack
+         */
+        private @NotNull ItemStack getCloseButton() {
+            ItemStack closeButton = new ItemStack(Material.ARROW);
+            ItemMeta meta = closeButton.getItemMeta();
+            meta.setDisplayName("§cClose menu");
+            closeButton.setItemMeta(meta);
+            return closeButton;
         }
     }
 }

@@ -18,18 +18,27 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class MainGui {
     private static final SmartInventory INVENTORY = SmartInventory.builder()
             .id("mainGui")
+            .manager(Main.INVENTORY_MANAGER)
             .provider(new MainProvider())
             .size(5, 9)
-            .title(ChatColor.DARK_AQUA + "Host")
-            .closeable(false)
+            .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
+            .closeable(true)
             .build();
+
+    public static ClickableItem empty() {
+        ClickableItem empty = ClickableItem.empty(new ItemStack(Material.STAINED_GLASS_PANE,
+                1, new Integer(15).shortValue()));
+        ItemMeta meta = empty.getItem().getItemMeta();
+        meta.setDisplayName(" ");
+        empty.getItem().setItemMeta(meta);
+        return empty;
+    }
 
     /**
      * Open a new Main host GUI
@@ -42,49 +51,57 @@ public class MainGui {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Fill inventory of glass panes
-            ClickableItem empty = ClickableItem.empty(new ItemStack(Material.STAINED_GLASS_PANE,
-                    0, new Integer(15).shortValue()));
+            ClickableItem empty = empty();
             contents.set(0,0, empty);
             contents.set(0,1, empty);
             contents.set(0,7, empty);
             contents.set(0,8, empty);
             contents.set(1,0, empty);
             contents.set(1,8, empty);
+            contents.set(3,0, empty);
+            contents.set(3,8, empty);
             contents.set(4,0, empty);
-            contents.set(4,8, empty);
-            contents.set(5,0, empty);
-            contents.set(5,1, empty);
-            contents.set(5,7, empty);
-            //  Host infos
-            contents.set(0, 4, ClickableItem.empty(PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
-                    Main.SERVER_NAME, getHostInfoLore())));
+            contents.set(4,1, empty);
+            contents.set(4,7, empty);
+            update(player, contents);
             //  Open WhiteList GUI
-            contents.set(2, 2, ClickableItem.of(PlayerHead.getPlayerSkull(player.getName(),
-                            "Whitelisted players", getWhiteListLore()), e -> new WhiteList(player)));
-            //  Toggle game access
-            contents.set(2, 3, ClickableItem.of(getRedButton(),
-                    getAccessConsumer(contents, 3, getRedButton())));
-            contents.set(2, 4, ClickableItem.of(getGoldButton(),
-                    getAccessConsumer(contents, 4, getGoldButton())));
-            contents.set(2, 5, ClickableItem.of(getGreenButton(),
-                    getAccessConsumer(contents, 5, getGreenButton())));
+            contents.set(2, 1, ClickableItem.of(PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
+                    "Whitelisted players", getWhiteListLore()), e -> new WhiteList(player)));
             //  Open WaitList GUI
-            contents.set(2, 6, ClickableItem.of(getWaitListButton(), e -> new WaitList(player)));
+            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e -> new WaitList(player)));
             //  Close GUI
-            contents.set(5, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
+            contents.set(4, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
             //  Cancel host (With validation)
-            contents.set(5, 8, ClickableItem.of(getCancelButton(), e -> new CancelHost(player)));
+            contents.set(4, 8, ClickableItem.of(getCancelButton(), e -> new CancelHost(player)));
         }
 
         @Override
-        public void update(Player player, InventoryContents contents) {}
+        public void update(Player player, InventoryContents contents) {
+            //  Host infos
+            contents.set(0, 4, ClickableItem.empty(PlayerHead.getPlayerSkull(player.getName(),
+                    Main.SERVER_NAME, getHostInfoLore())));
+            //  Toggle game access
+            contents.set(2, 3, ClickableItem.of(getRedButton(),
+                    getAccessConsumer(player, contents, HostAccess.AccessStates.PRIVATE)));
+            contents.set(2, 4, ClickableItem.of(getGoldButton(),
+                    getAccessConsumer(player, contents, HostAccess.AccessStates.REQUEST_TO_JOIN)));
+            contents.set(2, 5, ClickableItem.of(getGreenButton(),
+                    getAccessConsumer(player, contents, HostAccess.AccessStates.OPEN)));
+        }
 
         /**
          * Get PRIVATE button ItemStack
          */
         private @NotNull ItemStack getRedButton() {
-            ItemStack item = PlayerHead.getTextureSkull(PlayerHead.Rose_Red, "§cPRIVATE HOST",
-                    Arrays.asList(ChatColor.GOLD + "Click to turn", "this host in", "private mode"));
+            ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 14);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName("§cPRIVATE HOST");
+            List<String> waitListLore = new ArrayList<>();
+            waitListLore.add(ChatColor.GOLD + "Click to turn");
+            waitListLore.add(ChatColor.GOLD + "this host in");
+            waitListLore.add(ChatColor.GOLD + "private mode");
+            meta.setLore(waitListLore);
+            item.setItemMeta(meta);
             if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.PRIVATE)) {
                 Glowing.addGlow(item);
             }
@@ -95,8 +112,15 @@ public class MainGui {
          * Get REQUEST_ONLY_BUTTON button ItemStack
          */
         private @NotNull ItemStack getGoldButton() {
-            ItemStack item = PlayerHead.getTextureSkull(PlayerHead.Gold, "§cWAIT LIST",
-                    Arrays.asList(ChatColor.GOLD + "Click to turn", "this host in", "WaitList mode"));
+            ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 4);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName("§cWAIT LIST");
+            List<String> waitListLore = new ArrayList<>();
+            waitListLore.add(ChatColor.GOLD + "Click to turn");
+            waitListLore.add(ChatColor.GOLD + "this host in");
+            waitListLore.add(ChatColor.GOLD + "waitList mode");
+            meta.setLore(waitListLore);
+            item.setItemMeta(meta);
             if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.REQUEST_TO_JOIN)) {
                 Glowing.addGlow(item);
             }
@@ -107,8 +131,15 @@ public class MainGui {
          * Get OPEN button ItemStack
          */
         private @NotNull ItemStack getGreenButton() {
-            ItemStack item = PlayerHead.getTextureSkull(PlayerHead.Lime_Green, "§cOPEN",
-                    Arrays.asList(ChatColor.GOLD + "Click to turn", "this host in", "Open mode"));
+            ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 5);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName("§cOPEN");
+            List<String> waitListLore = new ArrayList<>();
+            waitListLore.add(ChatColor.GOLD + "Click to turn");
+            waitListLore.add(ChatColor.GOLD + "this host in");
+            waitListLore.add(ChatColor.GOLD + "open mode");
+            meta.setLore(waitListLore);
+            item.setItemMeta(meta);
             if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.OPEN)) {
                 Glowing.addGlow(item);
             }
@@ -117,8 +148,11 @@ public class MainGui {
 
         @Contract(pure = true)
         private @NotNull Consumer<InventoryClickEvent> getAccessConsumer
-                (InventoryContents contents, int slot, ItemStack button) {
-            return e-> contents.set(1, slot, ClickableItem.of(button, getAccessConsumer(contents, slot, button)));
+                (Player player, InventoryContents contents, HostAccess.AccessStates access) {
+            return e-> {
+                Main.HOST_ACCESS.setAccess(access);
+                update(player, contents);
+            };
         }
 
         private @NotNull List<String> getHostInfoLore() {
@@ -126,6 +160,7 @@ public class MainGui {
             hostInfos.add("Host: " + Main.HOST_PLAYER.getName());
             hostInfos.add("Game: " + Main.GAME);
             hostInfos.add("Version: " + Main.VERSION);
+            hostInfos.add("Access: " + Main.HOST_ACCESS.getAccess().name());
             return hostInfos;
         }
 

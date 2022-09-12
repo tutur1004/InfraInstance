@@ -3,32 +3,27 @@ package fr.milekat.infra.workers.host.commands;
 import fr.milekat.infra.Main;
 import fr.milekat.infra.workers.host.gui.MainGui;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
-
-public class OpenMainGui extends Command {
-    protected OpenMainGui() {
-        super("host", "Open host main GUI", "/host", Collections.singletonList("h"));
-    }
-
+public class OpenMainGui implements CommandExecutor {
     /**
-     * Executes the command, returning its success
+     * Executes the given command, returning its success
      *
-     * @param sender       Source object which is executing this command
-     * @param commandLabel The alias of the command used
-     * @param args         All arguments passed to the command, split via ' '
-     * @return true if the command was successful, otherwise false
+     * @param sender  Source of the command
+     * @param command Command which was executed
+     * @param label   Alias of the command which was used
+     * @param args    Passed command arguments
+     * @return true if a valid command, otherwise false
      */
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (player.getUniqueId().equals(Main.HOST_PLAYER.getUniqueId())) {
                 new MainGui(player);
             }
         }
-        return true;
-    }
+        return true;    }
 }

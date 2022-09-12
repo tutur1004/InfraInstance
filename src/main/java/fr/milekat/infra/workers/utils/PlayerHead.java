@@ -8,8 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +35,7 @@ public class PlayerHead {
             "IzYzZiYzQwY2U3MzEwNjRmNjE1ZGQ5ZCJ9fX0=";
 
     public static @NotNull ItemStack getPlayerSkull(String playerName, String displayName, List<String> lore){
-        ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 1);
+        ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 1, (short)3);
         SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
 
         assert skullMeta != null;
@@ -53,7 +52,7 @@ public class PlayerHead {
     }
 
     public static @NotNull ItemStack getTextureSkull(String b64Texture, String displayName, List<String> lore){
-        ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 1);
+        ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 1, (short)3);
         SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
 
         assert skullMeta != null;
@@ -74,15 +73,15 @@ public class PlayerHead {
      * @param base64 the base64 encoded string
      */
     private static void setSkinViaBase64(SkullMeta meta, String base64) {
+        Field profileField;
         try {
-            Method setProfile = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
-            setProfile.setAccessible(true);
-
             GameProfile profile = new GameProfile(UUID.randomUUID(), "skull-texture");
             profile.getProperties().put("textures", new Property("textures", base64));
 
-            setProfile.invoke(meta, profile);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException exception) {
+            profileField = meta.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            profileField.set(meta, profile);
+        } catch (IllegalAccessException | NoSuchFieldException exception) {
             Main.getOwnLogger().severe("There was a severe internal reflection " +
                     "error when attempting to set the skin of a player skull via base64!");
             exception.printStackTrace();
