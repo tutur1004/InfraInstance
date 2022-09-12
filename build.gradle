@@ -10,7 +10,7 @@ compileJava {
 
 jar {
     from('src/main/java') {
-        include "fr/milekat/hostapi/storage/adapter/mysql/host_schema.sql"
+        include "fr/milekat/infra/storage/adapter/mysql/infra_schema.sql"
     }
     actions = [] as List<Action<? super Task>>
     dependsOn('shadowJar')
@@ -18,7 +18,7 @@ jar {
 
 shadowJar{
     from('src/main/java') {
-        include "fr/milekat/hostapi/storage/adapter/mysql/host_schema.sql"
+        include "fr/milekat/infra/storage/adapter/mysql/infra_schema.sql"
     }
     getArchiveClassifier().set(null)
 }
@@ -37,7 +37,7 @@ compileJava.options.encoding = 'UTF-8'
 dependencies {
     compileOnly('org.jetbrains:annotations:23.0.0')
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
-    compileOnly("com.mojang:authlib:1.5.25")
+    compileOnly("com.mojang:authlib:1.5.26")
     implementation group: 'com.github.tutur1004', name: 'MilekatUtils', version: '834fa1d4da'
     implementation group: 'com.zaxxer', name: 'HikariCP', version: '4.0.3'
     implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.0.6'

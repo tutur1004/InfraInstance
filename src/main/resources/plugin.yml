@@ -1,5 +1,5 @@
-name: HostAPI
+name: InfraInstance
 author: MileKat
-main: fr.milekat.hostapi.Main
+main: fr.milekat.infra.Main
 version: 0.1
-description: "API to load a host game properly"
+description: "API/Plugin to manage an instance or api to access storage"
