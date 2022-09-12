@@ -17,7 +17,7 @@ public class MessagingManager {
 
     public MessagingManager(@NotNull FileConfiguration config) throws MessagingLoaderException {
         try {
-            String messagingProvider = config.getString("storage.type");
+            String messagingProvider = config.getString("messaging.type");
             if (Main.DEBUG) {
                 Main.getHostLogger().info("Loading messaging type: " + messagingProvider);
             }
@@ -29,7 +29,7 @@ public class MessagingManager {
                         Main.MESSAGE_CHANNEL, new ReceivePluginMessage());
                 messaging = new SendPluginMessage();
             } else if (messagingProvider.equalsIgnoreCase("rabbitmq")) {
-                new ReceiveRabbitMessage();
+                new ReceiveRabbitMessage().getRabbitConsumerThread().start();
                 messaging = new SendRabbitMessage();
             } else if (messagingProvider.equalsIgnoreCase("redis")) {
                 messaging = new SendRedisMessage();

@@ -18,7 +18,7 @@ messaging:
   #   None: If you only need the API, without other plugin functions
   type: None
   rabbit-mq:
-    prefix: "HOST_"
+    prefix: "host."
     hostname: "localhost"
     port: 5672
     username: "user"

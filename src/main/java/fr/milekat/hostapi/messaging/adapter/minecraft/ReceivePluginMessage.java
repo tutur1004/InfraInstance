@@ -26,7 +26,7 @@ public class ReceivePluginMessage implements PluginMessageListener {
                 message.add(line);
                 line = in.readLine();
             } while (line!=null);
-            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.equalsIgnoreCase(Messaging.TARGET_TO_LOBBY)) {
+            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.startsWith(Messaging.TARGET_TO_LOBBY_PREFIX)) {
                 //  Check if message is addressed to this lobby
                 new LobbyProxyReceive(); // TODO: 08/09/2022 LobbyProxyReceive
             } else if (Main.SERVER_TYPE.equals(ServerType.HOST) && subChannel.equalsIgnoreCase(Main.SERVER_ID)) {

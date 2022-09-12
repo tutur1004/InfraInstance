@@ -8,22 +8,29 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
 
 public interface Messaging {
-    String TARGET_TO_PROXY = "HOST_PROXY";
-    String TARGET_TO_LOBBY = "HOST_LOBBY_#";
+    //  Global settings
+    String TARGET_TO_PROXY = "proxy";
+    String TARGET_TO_LOBBY_PREFIX = "lobby";
+    String TARGET_TO_HOST_PREFIX = "host";
 
-    String HOST_RABBIT_PREFIX = Main.getFileConfig().getString("messaging.rabbit-mq.prefix");
-    String RABBIT_EXCHANGE = HOST_RABBIT_PREFIX + "EXCHANGE";
-    String RABBIT_CONSUMER_ROUTING_KEY = HOST_RABBIT_PREFIX + "ROUTING_KEY_" + getIdentifier();
-    String RABBIT_CONSUMER_QUEUE = HOST_RABBIT_PREFIX + "CONSUMER_QUEUE_" + getIdentifier();
-    String RABBIT_PUBLISHER_QUEUE = HOST_RABBIT_PREFIX + "PUBLISHER_QUEUE_" + getIdentifier();
+    //  RabbitMQ settings
+    String RABBIT_SEPARATOR = ".";
+    String RABBIT_PREFIX = Main.getFileConfig().getString("messaging.rabbit-mq.prefix");
+    String RABBIT_EXCHANGE = RABBIT_PREFIX + "topic" + RABBIT_SEPARATOR + "exchange";
+    String RABBIT_QUEUE = RABBIT_PREFIX + "queue" + RABBIT_SEPARATOR + getServerIdentifier();
+    String RABBIT_ROUTING_KEY = RABBIT_PREFIX + getServerIdentifier();
 
-    static @NotNull String getIdentifier() {
+    /**
+     * Simple shortcut to get the server identifier
+     */
+    static @NotNull String getServerIdentifier() {
         if (Main.SERVER_TYPE.equals(ServerType.LOBBY)) {
-            return "LOBBY_" + Bukkit.getPort();
+            return String.valueOf(Bukkit.getPort());
         } else if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
-            return "HOST_" + Main.SERVER_NAME;
+            return Main.SERVER_NAME.toLowerCase(Locale.ROOT).replaceAll("-", ".");
         } else return "";
     }
 
