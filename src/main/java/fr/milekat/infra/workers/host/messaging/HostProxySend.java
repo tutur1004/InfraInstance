@@ -16,7 +16,7 @@ public class HostProxySend {
      * Notify proxy: Host player has joined this host game
      */
     public static void notifyHostJoined(@NotNull Player hostPlayer) throws MessagingSendException {
-        Main.getMessaging().sendMessage(hostPlayer, Messaging.TARGET_TO_PROXY_PREFIX,
+        Main.getMessaging().sendMessage(hostPlayer, Messaging.PROXY_PREFIX,
                 MessagingCase.HOST_JOINED, new ArrayList<>());
     }
 
@@ -24,7 +24,7 @@ public class HostProxySend {
      * Notify proxy: Host player has invited a player to join (The player should be connected to a lobby)
      */
     public static void notifyInvitePlayer(@NotNull Player hostPlayer, String playerName) throws MessagingSendException {
-        Main.getMessaging().sendMessage(hostPlayer, Messaging.TARGET_TO_PROXY_PREFIX,
+        Main.getMessaging().sendMessage(hostPlayer, Messaging.PROXY_PREFIX,
                 MessagingCase.HOST_INVITE_PLAYER, Collections.singletonList(playerName));
     }
 
@@ -32,17 +32,17 @@ public class HostProxySend {
      * Notify proxy: Host player has invited a player to join (The player should be connected to a lobby)
      */
     public static void notifyHostDeniedRequest(@NotNull Player hostPlayer, UUID deniedUuid) throws MessagingSendException {
-        Main.getMessaging().sendMessage(hostPlayer, Messaging.TARGET_TO_PROXY_PREFIX,
+        Main.getMessaging().sendMessage(hostPlayer, Messaging.PROXY_PREFIX,
                 MessagingCase.HOST_DENIED_REQUEST, Collections.singletonList(deniedUuid.toString()));
     }
 
     public static void notifyGameReady() throws MessagingSendException {
-        Main.getMessaging().sendMessage(null, Messaging.TARGET_TO_PROXY_PREFIX,
+        Main.getMessaging().sendMessage(null, Messaging.PROXY_PREFIX,
                 MessagingCase.GAME_READY, new ArrayList<>());
     }
 
     public static void notifyGameFinish() throws MessagingSendException {
-        Main.getMessaging().sendMessage(null, Messaging.TARGET_TO_PROXY_PREFIX,
+        Main.getMessaging().sendMessage(null, Messaging.PROXY_PREFIX,
                 MessagingCase.GAME_READY, new ArrayList<>());
     }
 }

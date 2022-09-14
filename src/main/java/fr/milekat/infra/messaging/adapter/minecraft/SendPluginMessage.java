@@ -18,7 +18,7 @@ public class SendPluginMessage implements Messaging {
 
     @Override
     public boolean checkSending() {
-        return true;
+        return false; // TODO: 14/09/2022 To ensure no one use this, TO REMOVE OR TO REWORK !
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.util.List;
 public class ReceivePluginMessage implements PluginMessageListener {
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] rawMessage) {
+        // TODO: 14/09/2022 To remove or to rework !
         @SuppressWarnings("UnstableApiUsage") ByteArrayDataInput in = ByteStreams.newDataInput(rawMessage);
         String mainChannel = in.readUTF();
         if (mainChannel.equalsIgnoreCase("proxy")) {
@@ -26,7 +27,7 @@ public class ReceivePluginMessage implements PluginMessageListener {
                 message.add(line);
                 line = in.readLine();
             } while (line!=null);
-            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.startsWith(Messaging.TARGET_TO_LOBBY_PREFIX)) {
+            if (Main.SERVER_TYPE.equals(ServerType.LOBBY) && subChannel.startsWith(Messaging.LOBBY_PREFIX)) {
                 //  Check if message is addressed to this lobby
                 new LobbyProxyReceive(); // TODO: 08/09/2022 LobbyProxyReceive
             } else if (Main.SERVER_TYPE.equals(ServerType.HOST) && subChannel.equalsIgnoreCase(Main.SERVER_ID)) {

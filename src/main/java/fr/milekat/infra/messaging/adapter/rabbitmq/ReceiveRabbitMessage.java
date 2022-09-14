@@ -7,10 +7,10 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import fr.milekat.infra.Main;
-import fr.milekat.infra.api.classes.ServerType;
 import fr.milekat.infra.messaging.Messaging;
-import fr.milekat.infra.workers.host.messaging.HostProxyReceive;
-import fr.milekat.infra.workers.lobby.LobbyProxyReceive;
+import fr.milekat.infra.messaging.processing.MessageFromHost;
+import fr.milekat.infra.messaging.processing.MessageFromLobby;
+import fr.milekat.infra.messaging.processing.MessageFromProxy;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -50,14 +50,15 @@ public class ReceiveRabbitMessage {
                             Main.getOwnLogger().info(strRaw);
                         }
                         List<String> message = new Gson().fromJson(strRaw, new TypeToken<List<String>>(){}.getType());
-                        if (Main.SERVER_TYPE.equals(ServerType.LOBBY) &&
-                                delivery.getEnvelope().getRoutingKey().startsWith(Messaging.TARGET_TO_LOBBY_PREFIX)) {
-                            //  Check if message is addressed to this lobby
-                            new LobbyProxyReceive(); // TODO: 08/09/2022 LobbyProxyReceive
-                        } else if (Main.SERVER_TYPE.equals(ServerType.HOST) &&
-                                delivery.getEnvelope().getRoutingKey().startsWith(Messaging.TARGET_TO_HOST_PREFIX)) {
-                            //  Check if message is addressed to this host
-                            new HostProxyReceive(message);
+                        if (message.get(0).startsWith(Messaging.PROXY_PREFIX)) {
+                            //  Message is sent from a proxy server
+                            new MessageFromProxy(message);
+                        } else if (message.get(0).startsWith(Messaging.LOBBY_PREFIX)) {
+                            //  Message is sent from a lobby server
+                            new MessageFromLobby(message);
+                        } else if (message.get(0).startsWith(Messaging.HOST_PREFIX)) {
+                            //  Message is sent from a host server
+                            new MessageFromHost(message);
                         }
                     } catch (Exception exception) {
                         if (Main.DEBUG) {

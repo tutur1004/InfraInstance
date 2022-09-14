@@ -10,21 +10,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * <p>Messages semantic:</p>
+ * <p>0. {@link Messaging#getServerIdentifier()}
+ * <br>1. {@link MessagingCase}
+ * <br>2.[...] Message arguments</p>
+ * */
 public interface Messaging {
     //  Global settings
-    String TARGET_TO_PROXY_PREFIX = "proxy";
-    String TARGET_TO_LOBBY_PREFIX = "lobby";
-    String TARGET_TO_HOST_PREFIX = "host";
+    String SEPARATOR = ".";
+    String PROXY_PREFIX = "proxy";
+    String LOBBY_PREFIX = "lobby";
+    String HOST_PREFIX = "host";
 
     //  PluginMessage settings
     String MESSAGE_CHANNEL = "INFRA_MESSAGING";
 
     //  RabbitMQ settings
-    String RABBIT_SEPARATOR = ".";
     String RABBIT_PREFIX = Main.getFileConfig().getString("messaging.rabbit-mq.prefix");
     String RABBIT_EXCHANGE_TYPE = "x-rtopic";
-    String RABBIT_EXCHANGE = RABBIT_PREFIX + RABBIT_EXCHANGE_TYPE + RABBIT_SEPARATOR + "exchange";
-    String RABBIT_QUEUE = RABBIT_PREFIX + "queue" + RABBIT_SEPARATOR + getServerIdentifier();
+    String RABBIT_EXCHANGE = RABBIT_PREFIX + RABBIT_EXCHANGE_TYPE + SEPARATOR + "exchange";
+    String RABBIT_QUEUE = RABBIT_PREFIX + "queue" + SEPARATOR + getServerIdentifier();
     String RABBIT_ROUTING_KEY = RABBIT_PREFIX + getServerIdentifier();
 
     /**
@@ -32,10 +38,10 @@ public interface Messaging {
      */
     static @NotNull String getServerIdentifier() {
         if (Main.SERVER_TYPE.equals(ServerType.LOBBY)) {
-            return String.valueOf(Bukkit.getPort());
+            return LOBBY_PREFIX + SEPARATOR + Bukkit.getPort();
         } else if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
             return Main.SERVER_NAME.toLowerCase(Locale.ROOT).replaceAll("-", ".");
-        } else return "";
+        } else return "unknown";
     }
 
     /**

@@ -63,7 +63,8 @@ public class SendRabbitMessage implements Messaging {
             throws MessagingSendException {
         try (Connection connection = this.factory.newConnection();
              Channel channel = connection.createChannel()) {
-            ArrayList<String> list = new ArrayList<>();
+            List<String> list = new ArrayList<>();
+            list.add(Messaging.getServerIdentifier());
             list.add(mCase.name());
             list.addAll(message);
             channel.basicPublish(Messaging.RABBIT_EXCHANGE, target, null,
