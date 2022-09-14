@@ -59,14 +59,14 @@ public class SendRabbitMessage implements Messaging {
      * @param message to send
      */
     @Override
-    public void sendProxyMessage(Player p, String target, MessagingCase mCase, List<String> message)
+    public void sendMessage(Player p, String target, MessagingCase mCase, List<String> message)
             throws MessagingSendException {
         try (Connection connection = this.factory.newConnection();
              Channel channel = connection.createChannel()) {
             ArrayList<String> list = new ArrayList<>();
             list.add(mCase.name());
             list.addAll(message);
-            channel.basicPublish(RABBIT_EXCHANGE, target, null,
+            channel.basicPublish(Messaging.RABBIT_EXCHANGE, target, null,
                     new Gson().toJson(list).getBytes(StandardCharsets.UTF_8));
         } catch (Exception exception) {
             throw new MessagingSendException(exception, "Error while trying to send message");

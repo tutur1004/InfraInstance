@@ -53,7 +53,7 @@ public interface Messaging {
      * @param mCase   Type of message
      * @param message to send
      */
-    void sendProxyMessage(Player player, String target, MessagingCase mCase, List<String> message)
+    void sendMessage(Player player, String target, MessagingCase mCase, List<String> message)
             throws MessagingSendException;
 
     /**

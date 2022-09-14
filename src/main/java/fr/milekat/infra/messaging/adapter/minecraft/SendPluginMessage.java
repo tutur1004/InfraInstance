@@ -35,7 +35,7 @@ public class SendPluginMessage implements Messaging {
      * @param message to send
      */
     @Override
-    public void sendProxyMessage(Player p, String target, MessagingCase mCase, List<String> message)
+    public void sendMessage(Player p, String target, MessagingCase mCase, List<String> message)
             throws MessagingSendException {
         if (pmAllowedCases.contains(mCase)) {
             try {

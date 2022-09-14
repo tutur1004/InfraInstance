@@ -21,11 +21,13 @@ public class SendRedisMessage implements Messaging {
     /**
      * Send a message to the proxy server
      *
-     * @param target
+     * @param p       source player
+     * @param target  Targeted channel (RoutingKey for RabbitMQ)
+     * @param mCase   Type of message
      * @param message to send
      */
     @Override
-    public void sendProxyMessage(Player player, String target, MessagingCase mCase, List<String> message) {
+    public void sendMessage(Player p, String target, MessagingCase mCase, List<String> message) {
 
     }
 }
