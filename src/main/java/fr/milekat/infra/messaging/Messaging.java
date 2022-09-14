@@ -12,7 +12,7 @@ import java.util.Locale;
 
 public interface Messaging {
     //  Global settings
-    String TARGET_TO_PROXY = "proxy";
+    String TARGET_TO_PROXY_PREFIX = "proxy";
     String TARGET_TO_LOBBY_PREFIX = "lobby";
     String TARGET_TO_HOST_PREFIX = "host";
 
@@ -22,7 +22,8 @@ public interface Messaging {
     //  RabbitMQ settings
     String RABBIT_SEPARATOR = ".";
     String RABBIT_PREFIX = Main.getFileConfig().getString("messaging.rabbit-mq.prefix");
-    String RABBIT_EXCHANGE = RABBIT_PREFIX + "topic" + RABBIT_SEPARATOR + "exchange";
+    String RABBIT_EXCHANGE_TYPE = "x-rtopic";
+    String RABBIT_EXCHANGE = RABBIT_PREFIX + RABBIT_EXCHANGE_TYPE + RABBIT_SEPARATOR + "exchange";
     String RABBIT_QUEUE = RABBIT_PREFIX + "queue" + RABBIT_SEPARATOR + getServerIdentifier();
     String RABBIT_ROUTING_KEY = RABBIT_PREFIX + getServerIdentifier();
 

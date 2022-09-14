@@ -74,19 +74,23 @@ public class Main extends JavaPlugin {
         } catch (MessagingLoaderException exception) {
             getOwnLogger().warning("Messaging load failed, disabling plugin..");
             getOwnLogger().warning("If you only need the API, set messaging.type to 'none'.");
-            this.onDisable();
             if (DEBUG) {
                 exception.printStackTrace();
             } else {
                 getOwnLogger().warning("Error: " + exception.getLocalizedMessage());
             }
+            this.onDisable();
         }
     }
 
     @Override
     public void onDisable() {
-        getStorage().disconnect();
-        getMessaging().disconnect();
+        try {
+            getStorage().disconnect();
+        } catch (Exception ignored) {}
+        try {
+            getMessaging().disconnect();
+        } catch (Exception ignored) {}
     }
 
     /**

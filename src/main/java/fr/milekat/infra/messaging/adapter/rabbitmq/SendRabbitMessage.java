@@ -1,7 +1,6 @@
 package fr.milekat.infra.messaging.adapter.rabbitmq;
 
 import com.google.gson.Gson;
-import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -29,7 +28,7 @@ public class SendRabbitMessage implements Messaging {
         connectionFactory.setPassword(Main.getFileConfig().getString("messaging.rabbit-mq.password"));
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()) {
-            channel.exchangeDeclare(Messaging.RABBIT_EXCHANGE, BuiltinExchangeType.TOPIC);
+            channel.exchangeDeclare(Messaging.RABBIT_EXCHANGE, Messaging.RABBIT_EXCHANGE_TYPE);
         } catch (IOException | TimeoutException exception) {
             throw new MessagingLoaderException("Error while trying to init RabbitMQ sending");
         }
