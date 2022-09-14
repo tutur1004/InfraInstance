@@ -27,7 +27,7 @@ public class MySQLAdapter implements StorageExecutor {
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
     private Date CACHED_GAMES_REFRESH = null;
-    private List<Game> CACHED_GAMES = new ArrayList<>();
+    private List<Game> CACHED_GAMES;
 
     /*
         SQL Queries
@@ -262,7 +262,7 @@ public class MySQLAdapter implements StorageExecutor {
      */
     @Override
     public List<Game> getGamesCached() throws StorageExecuteException {
-        if (CACHED_GAMES_REFRESH.getTime() + CACHE_DURATION < new Date().getTime()) {
+        if (CACHED_GAMES_REFRESH == null || CACHED_GAMES_REFRESH.getTime() + CACHE_DURATION < new Date().getTime()) {
             CACHED_GAMES = getGames();
         }
         return CACHED_GAMES;
