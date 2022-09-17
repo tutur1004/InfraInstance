@@ -3,7 +3,7 @@ package fr.milekat.infra.workers.host.listeners;
 import fr.milekat.infra.Main;
 import fr.milekat.infra.api.API;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import fr.milekat.infra.workers.host.messaging.HostProxySend;
+import fr.milekat.infra.messaging.sending.MessageToProxy;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -14,7 +14,7 @@ public class GameEvents implements Listener {
     public void onHostJoin(@NotNull PlayerJoinEvent event) throws MessagingSendException {
         if (event.getPlayer().getUniqueId().equals(API.getHost())) {
             Main.HOST_PLAYER = event.getPlayer();
-            HostProxySend.notifyHostJoined(event.getPlayer());
+            MessageToProxy.notifyHostJoined();
         }
     }
 }

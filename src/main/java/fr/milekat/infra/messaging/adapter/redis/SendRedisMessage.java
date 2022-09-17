@@ -1,9 +1,8 @@
 package fr.milekat.infra.messaging.adapter.redis;
 
+import fr.milekat.infra.messaging.MessageCase;
 import fr.milekat.infra.messaging.Messaging;
-import fr.milekat.infra.messaging.MessagingCase;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class SendRedisMessage implements Messaging {
      * @param message to send
      */
     @Override
-    public void sendMessage(Player p, String target, MessagingCase mCase, List<String> message) {
+    public void sendMessage(String target, MessageCase mCase, List<String> message) {
 
     }
 }

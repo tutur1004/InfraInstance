@@ -23,6 +23,8 @@ public class OpenMainGui implements CommandExecutor {
             Player player = (Player) sender;
             if (player.getUniqueId().equals(Main.HOST_PLAYER.getUniqueId())) {
                 new MainGui(player);
+            } else {
+                sender.sendMessage("§cOnly host can open this GUI.");
             }
         }
         return true;    }

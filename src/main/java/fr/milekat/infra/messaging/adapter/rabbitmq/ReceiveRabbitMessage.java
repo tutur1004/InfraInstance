@@ -7,6 +7,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import fr.milekat.infra.Main;
+import fr.milekat.infra.messaging.MessageCase;
 import fr.milekat.infra.messaging.Messaging;
 import fr.milekat.infra.messaging.processing.MessageFromHost;
 import fr.milekat.infra.messaging.processing.MessageFromLobby;
@@ -44,25 +45,34 @@ public class ReceiveRabbitMessage {
                 channel.queueBind(Messaging.RABBIT_QUEUE, Messaging.RABBIT_EXCHANGE,
                         Messaging.RABBIT_ROUTING_KEY);
                 DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                    String strRaw = "";
                     try {
-                        String strRaw = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                        strRaw = new String(delivery.getBody(), StandardCharsets.UTF_8);
                         if (Main.DEBUG) {
                             Main.getOwnLogger().info(strRaw);
                         }
                         List<String> message = new Gson().fromJson(strRaw, new TypeToken<List<String>>(){}.getType());
-                        if (message.get(0).startsWith(Messaging.PROXY_PREFIX)) {
+                        if (message.size() < 2) {
+                            if (Main.DEBUG) {
+                                Main.getOwnLogger().warning(MessageCase.class.getName() +
+                                        " not found in message: " + message);
+                            }
+                            return;
+                        }
+                        if (message.get(0).startsWith(Main.PROXY_PREFIX)) {
                             //  Message is sent from a proxy server
                             new MessageFromProxy(message);
-                        } else if (message.get(0).startsWith(Messaging.LOBBY_PREFIX)) {
+                        } else if (message.get(0).startsWith(Main.LOBBY_PREFIX)) {
                             //  Message is sent from a lobby server
                             new MessageFromLobby(message);
-                        } else if (message.get(0).startsWith(Messaging.HOST_PREFIX)) {
+                        } else if (message.get(0).startsWith(Main.HOST_PREFIX)) {
                             //  Message is sent from a host server
                             new MessageFromHost(message);
                         }
                     } catch (Exception exception) {
                         if (Main.DEBUG) {
                             Main.getOwnLogger().warning("Error while trying to consume Rabbit message !");
+                            Main.getOwnLogger().warning("Message: [" + strRaw + "]");
                             exception.printStackTrace();
                         }
                     }

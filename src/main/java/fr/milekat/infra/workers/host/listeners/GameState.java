@@ -6,11 +6,10 @@ import fr.milekat.infra.api.classes.InstanceState;
 import fr.milekat.infra.api.events.GameFinishedEvent;
 import fr.milekat.infra.api.events.GameStartEvent;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
+import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
-import fr.milekat.infra.workers.host.messaging.HostProxySend;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginEnableEvent;
 
 /**
  * Update storage instance states values
@@ -20,17 +19,6 @@ public class GameState implements Listener {
 
     public GameState(Instance thisHost) throws StorageExecuteException {
         this.thisHost = thisHost;
-    }
-
-    @EventHandler
-    public void onGameReady(PluginEnableEvent event) throws StorageExecuteException, MessagingSendException {
-        if (thisHost!=null) {
-            thisHost.setState(InstanceState.READY);
-            Main.getStorage().updateInstance(thisHost);
-            HostProxySend.notifyGameReady();
-        } else {
-            Main.getOwnLogger().warning("Host instance not found");
-        }
     }
 
     @EventHandler
@@ -48,7 +36,7 @@ public class GameState implements Listener {
         if (thisHost!=null) {
             thisHost.setState(InstanceState.ENDING);
             Main.getStorage().updateInstance(thisHost);
-            HostProxySend.notifyGameFinish();
+            MessageToProxy.notifyGameFinish();
         } else {
             Main.getOwnLogger().warning("Host instance not found");
         }

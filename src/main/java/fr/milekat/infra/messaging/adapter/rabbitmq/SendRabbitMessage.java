@@ -5,11 +5,10 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import fr.milekat.infra.Main;
+import fr.milekat.infra.messaging.MessageCase;
 import fr.milekat.infra.messaging.Messaging;
-import fr.milekat.infra.messaging.MessagingCase;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -53,18 +52,18 @@ public class SendRabbitMessage implements Messaging {
     /**
      * Send a message to the proxy server
      *
-     * @param p       source player
+     * @param ignored source player
      * @param target  Targeted channel (RoutingKey for RabbitMQ)
      * @param mCase   Type of message
      * @param message to send
      */
     @Override
-    public void sendMessage(Player p, String target, MessagingCase mCase, List<String> message)
+    public void sendMessage(String target, MessageCase mCase, List<String> message)
             throws MessagingSendException {
         try (Connection connection = this.factory.newConnection();
              Channel channel = connection.createChannel()) {
             List<String> list = new ArrayList<>();
-            list.add(Messaging.getServerIdentifier());
+            list.add(Messaging.PREFIX + Messaging.getServerIdentifier());
             list.add(mCase.name());
             list.addAll(message);
             channel.basicPublish(Messaging.RABBIT_EXCHANGE, target, null,

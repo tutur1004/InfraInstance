@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public class API {
-    private static final StorageExecutor EXECUTOR = Main.getStorage();
+    private static final StorageExecutor STORAGE = Main.getStorage();
 
     /*
         This host
@@ -50,7 +50,7 @@ public class API {
      * Method to get the {@link Instance} of this host.
      * If this server is not a {@link ServerType#HOST}, return null
      *
-     * @return Minecraft {@link UUID} of {@link Player}
+     * @return {@link Instance}
      */
     @Nullable
     public static Instance getHostInstance() throws StorageExecuteException {
@@ -115,7 +115,7 @@ public class API {
      * @return ticket amount
      */
     public static Integer getTickets(UUID uuid) throws StorageExecuteException {
-        return EXECUTOR.getTicket(uuid);
+        return STORAGE.getTicket(uuid);
     }
 
     /**
@@ -132,18 +132,18 @@ public class API {
      * @param player {@link Player}
      */
     public static void addPlayerTickets(@NotNull Player player, Integer amount) throws StorageExecuteException {
-        EXECUTOR.addPlayerTickets(player.getUniqueId(), amount);
+        STORAGE.addPlayerTickets(player.getUniqueId(), amount);
     }
 
     /*
         Global Instance
      */
     public static Instance getInstance(String name) throws StorageExecuteException {
-        return EXECUTOR.getInstance(name);
+        return STORAGE.getInstance(name);
     }
 
     public static void updateInstance(Instance instance) throws StorageExecuteException {
-        EXECUTOR.updateInstance(instance);
+        STORAGE.updateInstance(instance);
     }
 
     /*
@@ -156,6 +156,6 @@ public class API {
      */
     @Nullable
     public static User getUser(UUID uuid) throws StorageExecuteException {
-        return EXECUTOR.getUser(uuid);
+        return STORAGE.getUser(uuid);
     }
 }

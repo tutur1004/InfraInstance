@@ -22,6 +22,9 @@ import java.util.logging.Logger;
 
 public class Main extends JavaPlugin {
     public static final String HOST_UUID_ENV_VAR_NAME = "HOST_UUID";
+    public static final String PROXY_PREFIX = "proxy";
+    public static final String LOBBY_PREFIX = "lobby";
+    public static final String HOST_PREFIX = "host";
     public static Player HOST_PLAYER;
     public static HostAccess HOST_ACCESS = new HostAccess();
     public static Map<UUID, String> WHITE_LIST = new HashMap<>();
@@ -67,7 +70,6 @@ public class Main extends JavaPlugin {
                 getOwnLogger().warning("Error: " + exception.getLocalizedMessage());
             }
         }
-        new WorkerManager(this);
         //  Load messaging (Optional since this plugin can be used only as an API)
         try {
             LOADED_MESSAGING = new MessagingManager(configFile);
@@ -81,6 +83,7 @@ public class Main extends JavaPlugin {
             }
             this.onDisable();
         }
+        new WorkerManager(this);
     }
 
     @Override

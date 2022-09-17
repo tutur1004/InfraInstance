@@ -2,7 +2,7 @@ package fr.milekat.infra.workers.host.gui;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import fr.milekat.infra.workers.host.messaging.HostProxySend;
+import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.workers.host.players.PlayersList;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
@@ -96,7 +96,7 @@ public class WhiteList  {
                     .onClose(INVENTORY::open)
                     .onComplete((player, text) -> {
                         try {
-                            HostProxySend.notifyInvitePlayer(guiPlayer, text);
+                            MessageToProxy.notifyInvitePlayer(text);
                         } catch (MessagingSendException exception) {
                             guiPlayer.sendMessage("§cServer error, please contact the staff.");
                             exception.printStackTrace();
