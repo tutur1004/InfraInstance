@@ -1,7 +1,7 @@
 package fr.milekat.infra.workers.host.gui;
 
 import fr.milekat.infra.Main;
-import fr.milekat.infra.workers.host.HostAccess;
+import fr.milekat.infra.api.classes.AccessStates;
 import fr.milekat.infra.workers.utils.Glowing;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
@@ -31,7 +31,7 @@ public class MainGui {
             .closeable(true)
             .build();
 
-    public static ClickableItem empty() {
+    public static @NotNull ClickableItem empty() {
         ClickableItem empty = ClickableItem.empty(new ItemStack(Material.STAINED_GLASS_PANE,
                 1, new Integer(15).shortValue()));
         ItemMeta meta = empty.getItem().getItemMeta();
@@ -76,17 +76,17 @@ public class MainGui {
         }
 
         @Override
-        public void update(Player player, InventoryContents contents) {
+        public void update(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Host infos
             contents.set(0, 4, ClickableItem.empty(PlayerHead.getPlayerSkull(player.getName(),
                     Main.SERVER_NAME, getHostInfoLore())));
             //  Toggle game access
             contents.set(2, 3, ClickableItem.of(getRedButton(),
-                    getAccessConsumer(player, contents, HostAccess.AccessStates.PRIVATE)));
+                    getAccessConsumer(player, contents, AccessStates.PRIVATE)));
             contents.set(2, 4, ClickableItem.of(getGoldButton(),
-                    getAccessConsumer(player, contents, HostAccess.AccessStates.REQUEST_TO_JOIN)));
+                    getAccessConsumer(player, contents, AccessStates.REQUEST_TO_JOIN)));
             contents.set(2, 5, ClickableItem.of(getGreenButton(),
-                    getAccessConsumer(player, contents, HostAccess.AccessStates.OPEN)));
+                    getAccessConsumer(player, contents, AccessStates.OPEN)));
         }
 
         /**
@@ -102,9 +102,11 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "private mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.PRIVATE)) {
+            /*
+            if (Main.HOST_ACCESS.getAccess().equals(InstanceAccess.AccessStates.PRIVATE)) {
                 Glowing.addGlow(item);
             }
+            */
             return item;
         }
 
@@ -121,9 +123,11 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "waitList mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.REQUEST_TO_JOIN)) {
+            /*
+            if (Main.HOST_ACCESS.getAccess().equals(InstanceAccess.AccessStates.REQUEST_TO_JOIN)) {
                 Glowing.addGlow(item);
             }
+            */
             return item;
         }
 
@@ -140,17 +144,19 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "open mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            if (Main.HOST_ACCESS.getAccess().equals(HostAccess.AccessStates.OPEN)) {
+            /*
+            if (Main.HOST_ACCESS.getAccess().equals(AccessStates.OPEN)) {
                 Glowing.addGlow(item);
             }
+            */
             return item;
         }
 
         @Contract(pure = true)
         private @NotNull Consumer<InventoryClickEvent> getAccessConsumer
-                (Player player, InventoryContents contents, HostAccess.AccessStates access) {
+                (Player player, InventoryContents contents, AccessStates access) {
             return e-> {
-                Main.HOST_ACCESS.setAccess(access);
+                //  Main.HOST_ACCESS.setAccess(access);
                 update(player, contents);
             };
         }
@@ -160,7 +166,7 @@ public class MainGui {
             hostInfos.add("Host: " + Main.HOST_PLAYER.getName());
             hostInfos.add("Game: " + Main.GAME);
             hostInfos.add("Version: " + Main.VERSION);
-            hostInfos.add("Access: " + Main.HOST_ACCESS.getAccess().name());
+            hostInfos.add("Access: " /*+ Main.HOST_ACCESS.getAccess().name()*/);
             return hostInfos;
         }
 

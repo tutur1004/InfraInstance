@@ -671,6 +671,7 @@ public class MySQLAdapter implements StorageExecutor {
                 r.getString("hostname"),
                 r.getInt("port"),
                 InstanceState.fromInteger(r.getInt("state")),
+                AccessStates.fromInteger(r.getInt("access")),
                 resultSetToGame(r),
                 resultSetToUser(r),
                 creation,

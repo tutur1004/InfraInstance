@@ -8,7 +8,6 @@ import fr.milekat.infra.storage.StorageExecutor;
 import fr.milekat.infra.storage.StorageManager;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
 import fr.milekat.infra.workers.WorkerManager;
-import fr.milekat.infra.workers.host.HostAccess;
 import fr.minuskube.inv.InventoryManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -26,7 +25,6 @@ public class Main extends JavaPlugin {
     public static final String LOBBY_PREFIX = "lobby";
     public static final String HOST_PREFIX = "host";
     public static Player HOST_PLAYER;
-    public static HostAccess HOST_ACCESS = new HostAccess();
     public static Map<UUID, String> WHITE_LIST = new HashMap<>();
     public static Map<UUID, String> WAIT_LIST = new HashMap<>();
 

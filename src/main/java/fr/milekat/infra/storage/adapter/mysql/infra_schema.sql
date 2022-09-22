@@ -5,71 +5,72 @@ START TRANSACTION;
 -- TABLES setup
 
 CREATE TABLE `{prefix}games` (
-                                 `game_id` smallint(5) UNSIGNED NULL,
-                                 `game_name` varchar(32) NOT NULL COMMENT 'Game name',
-                                 `create_date` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Date when this line was added, UTC time',
-                                 `enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if the game is enable and playable',
-                                 `game_version` varchar(20) NOT NULL COMMENT 'Game version',
-                                 `server_version` varchar(20) NOT NULL COMMENT 'Minecraft server version',
-                                 `image` varchar(255) NOT NULL COMMENT 'Full image repo of this game',
-                                 `requirements` smallint(5) UNSIGNED NOT NULL DEFAULT 2048 COMMENT 'amount of needed RAM to run this game (MB)',
-                                 `icon` varchar(64) NOT NULL DEFAULT 'GRASS' COMMENT 'Bukkit material id of item'
+`game_id` smallint(5) UNSIGNED NULL,
+`game_name` varchar(32) NOT NULL COMMENT 'Game name',
+`create_date` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Date when this line was added, UTC time',
+`enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if the game is enable and playable',
+`game_version` varchar(20) NOT NULL COMMENT 'Game version',
+`server_version` varchar(20) NOT NULL COMMENT 'Minecraft server version',
+`image` varchar(255) NOT NULL COMMENT 'Full image repo of this game',
+`requirements` smallint(5) UNSIGNED NOT NULL DEFAULT 2048 COMMENT 'amount of needed RAM to run this game (MB)',
+`icon` varchar(64) NOT NULL DEFAULT 'GRASS' COMMENT 'Bukkit material id of item'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='List of all created games';
 CREATE INDEX `{prefix}games_id` ON `{prefix}games` (`game_name`);
 
 CREATE TABLE `{prefix}instances` (
-                                     `instance_id` tinyint(3) UNSIGNED NOT NULL,
-                                     `instance_name` varchar(64) NOT NULL COMMENT 'Instance name',
-                                     `instance_server_id` varchar(36) DEFAULT NULL COMMENT 'Id of instance server',
-                                     `instance_description` varchar(128) NOT NULL COMMENT 'Instance description',
-                                     `instance_message` longtext NULL COMMENT 'Custom instance message',
-                                     `hostname` VARCHAR(64) NOT NULL DEFAULT 'localhost' COMMENT 'Hostname of your instance',
-                                     `port` smallint(5) NOT NULL COMMENT 'Instance port',
-                                     `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Game state\n0: Creating\n1: Ready\n2: In progress\n3: Ending\n4: Terminated',
-                                     `game` smallint(5) UNSIGNED NULL COMMENT 'Game of this instance',
-                                     `user` int(10) UNSIGNED DEFAULT NULL COMMENT 'Host user',
-                                     `creation` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Date of instance creation',
-                                     `deletion` timestamp NULL DEFAULT current_timestamp() COMMENT 'Date of instance deletion'
+`instance_id` tinyint(3) UNSIGNED NOT NULL,
+`instance_name` varchar(64) NOT NULL COMMENT 'Instance name',
+`instance_server_id` varchar(36) DEFAULT NULL COMMENT 'Id of instance server',
+`instance_description` varchar(128) NOT NULL COMMENT 'Instance description',
+`instance_message` longtext NULL COMMENT 'Custom instance message',
+`hostname` VARCHAR(64) NOT NULL DEFAULT 'localhost' COMMENT 'Hostname of your instance',
+`port` smallint(5) NOT NULL COMMENT 'Instance port',
+`state` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Game state\n0: Creating\n1: Ready\n2: In progress\n3: Ending\n4: Terminated',
+`access` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Access state\n0: PRIVATE\n1: REQUEST_TO_JOIN\n2: OPEN',
+`game` smallint(5) UNSIGNED NULL COMMENT 'Game of this instance',
+`user` int(10) UNSIGNED DEFAULT NULL COMMENT 'Host user',
+`creation` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Date of instance creation',
+`deletion` timestamp NULL DEFAULT current_timestamp() COMMENT 'Date of instance deletion'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='This table list all instances, with their current state';
 CREATE INDEX `{prefix}instances_server_id` ON `{prefix}instances` (`instance_server_id`);
 
 CREATE TABLE `{prefix}logs` (
-                                `log_id` int(10) UNSIGNED NOT NULL,
-                                `date` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Log date',
-                                `instance` tinyint(3) UNSIGNED DEFAULT NULL COMMENT 'Id of targeted instance',
-                                `action` varchar(16) NOT NULL COMMENT  'FETCH_RESOURCES(0)\nGAME_CREATE(1)\nGAME_READY(2)\nGAME_START(3)\nGAME_END(4)\nINSTANCE_DELETE(5)',
-                                `user` int(10) UNSIGNED NOT NULL COMMENT 'Who trigger this log (Should be an UUID)',
-                                `game` smallint(5) UNSIGNED NOT NULL COMMENT 'Game of this log'
+`log_id` int(10) UNSIGNED NOT NULL,
+`date` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Log date',
+`instance` tinyint(3) UNSIGNED DEFAULT NULL COMMENT 'Id of targeted instance',
+`action` varchar(16) NOT NULL COMMENT  'FETCH_RESOURCES(0)\nGAME_CREATE(1)\nGAME_READY(2)\nGAME_START(3)\nGAME_END(4)\nINSTANCE_DELETE(5)',
+`user` int(10) UNSIGNED NOT NULL COMMENT 'Who trigger this log (Should be an UUID)',
+`game` smallint(5) UNSIGNED NOT NULL COMMENT 'Game of this log'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='This table log every actions from infra management system';
 
 CREATE TABLE `{prefix}users` (
-                                 `user_id` int(10) UNSIGNED NOT NULL,
-                                 `uuid` varchar(36) NOT NULL COMMENT 'UUID of player',
-                                 `last_name` varchar(16) NOT NULL COMMENT 'Name of player',
-                                 `tickets` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Amount of available host for this player'
+`user_id` int(10) UNSIGNED NOT NULL,
+`uuid` varchar(36) NOT NULL COMMENT 'UUID of player',
+`last_name` varchar(16) NOT NULL COMMENT 'Name of player',
+`tickets` smallint(5) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Amount of available host for this player'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='List of host users';
 CREATE INDEX `{prefix}users_uuid` ON `{prefix}users` (`uuid`);
 
 CREATE TABLE `{prefix}profiles` (
-                                    `profile_id` int(10) UNSIGNED NOT NULL,
-                                    `profile_name` varchar(32) NOT NULL COMMENT 'Game name',
-                                    `enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if this property is enabled'
+`profile_id` int(10) UNSIGNED NOT NULL,
+`profile_name` varchar(32) NOT NULL COMMENT 'Game name',
+`enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if this property is enabled'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='List of all properties (Env Vars)';
 CREATE INDEX `{prefix}profiles_id` ON `{prefix}profiles` (`profile_id`);
 
 CREATE TABLE `{prefix}properties` (
-                                      `property_id` int(10) UNSIGNED NOT NULL,
-                                      `property_name` varchar(32) NOT NULL COMMENT 'Game name',
-                                      `value` LONGTEXT null comment 'Value of this property',
-                                      `profile` int(10) UNSIGNED NOT NULL COMMENT 'Profile of this property',
-                                      `enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if this property is enabled'
+`property_id` int(10) UNSIGNED NOT NULL,
+`property_name` varchar(32) NOT NULL COMMENT 'Game name',
+`value` LONGTEXT null comment 'Value of this property',
+`profile` int(10) UNSIGNED NOT NULL COMMENT 'Profile of this property',
+`enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Bool: if this property is enabled'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='List of all properties (Env Vars)';
 CREATE INDEX `{prefix}properties_id` ON `{prefix}properties` (`property_id`);
 
 CREATE TABLE `{prefix}game_strategies` (
-                                           `strategy_id` int(10) UNSIGNED NOT NULL,
-                                           `game` smallint(5) UNSIGNED NULL COMMENT 'Game id',
-                                           `profile` int(10) UNSIGNED NOT NULL COMMENT 'Profile id'
+`strategy_id` int(10) UNSIGNED NOT NULL,
+`game` smallint(5) UNSIGNED NULL COMMENT 'Game id',
+`profile` int(10) UNSIGNED NOT NULL COMMENT 'Profile id'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Game profiles strategies';
 CREATE INDEX `{prefix}games_strategies` ON `{prefix}game_strategies` (`game`);
 

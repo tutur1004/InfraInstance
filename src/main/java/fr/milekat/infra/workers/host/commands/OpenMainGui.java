@@ -1,7 +1,5 @@
 package fr.milekat.infra.workers.host.commands;
 
-import fr.milekat.infra.Main;
-import fr.milekat.infra.workers.host.gui.MainGui;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,11 +19,8 @@ public class OpenMainGui implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            if (player.getUniqueId().equals(Main.HOST_PLAYER.getUniqueId())) {
-                new MainGui(player);
-            } else {
-                sender.sendMessage("§cOnly host can open this GUI.");
-            }
+
         }
-        return true;    }
+        return true;
+    }
 }

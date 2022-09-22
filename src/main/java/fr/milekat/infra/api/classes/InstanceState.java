@@ -1,5 +1,8 @@
 package fr.milekat.infra.api.classes;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
 public enum InstanceState {
     CREATING(0),
     READY(1),
@@ -13,7 +16,8 @@ public enum InstanceState {
         this.stateId = stateId;
     }
 
-    public static InstanceState fromInteger(int stateId) {
+    @Contract(pure = true)
+    public static @Nullable InstanceState fromInteger(int stateId) {
         for (InstanceState e : values()) {
             if (e.stateId == stateId) {
                 return e;
