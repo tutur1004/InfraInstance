@@ -33,6 +33,9 @@ public class PlayerHead {
     public static final String Rose_Red = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJl" +
             "cy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2M0ZDdhM2JjM2RlODMzZDMwMzJlODVhMGJmNmYyYmVmNzY4Nzg2Mm" +
             "IzYzZiYzQwY2U3MzEwNjRmNjE1ZGQ5ZCJ9fX0=";
+    public static final String Earth = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5" +
+            "taW5lY3JhZnQubmV0L3RleHR1cmUvYzY5MTk2YjMzMGM2Yjg5NjJmMjNhZDU2MjdmYjZlY2NlNDcyZWFmNWM5Z" +
+            "DQ0Zjc5MWY2NzA5YzdkMGY0ZGVjZSJ9fX0=";
 
     public static @NotNull ItemStack getPlayerSkull(String playerName, String displayName, List<String> lore){
         ItemStack itemStack = new ItemStack(Material.SKULL_ITEM, 1, (short)3);
@@ -45,6 +48,10 @@ public class PlayerHead {
         itemStack.setItemMeta(skullMeta);
 
         return itemStack;
+    }
+
+    public static @NotNull ItemStack getTextureSkull(String b64Texture){
+        return getTextureSkull(b64Texture, "Head", new ArrayList<>());
     }
 
     public static @NotNull ItemStack getTextureSkull(String b64Texture, String displayName){

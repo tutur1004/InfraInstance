@@ -24,7 +24,7 @@ public enum AccessStates {
         return null;
     }
 
-    public int getAccess() {
+    public int getAccessId() {
         return access;
     }
 }

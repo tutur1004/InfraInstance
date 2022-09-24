@@ -2,7 +2,9 @@ package fr.milekat.infra.workers.host.gui;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.AccessStates;
+import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.workers.utils.Glowing;
+import fr.milekat.infra.workers.utils.Gui;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
@@ -21,37 +23,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MainGui {
-    private static final SmartInventory INVENTORY = SmartInventory.builder()
+public class HostMainGui {
+    public static final SmartInventory INVENTORY = SmartInventory.builder()
             .id("mainGui")
             .manager(Main.INVENTORY_MANAGER)
-            .provider(new MainProvider())
+            .provider(new Provider())
             .size(5, 9)
             .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
             .closeable(true)
             .build();
 
-    public static @NotNull ClickableItem empty() {
-        ClickableItem empty = ClickableItem.empty(new ItemStack(Material.STAINED_GLASS_PANE,
-                1, new Integer(15).shortValue()));
-        ItemMeta meta = empty.getItem().getItemMeta();
-        meta.setDisplayName(" ");
-        empty.getItem().setItemMeta(meta);
-        return empty;
-    }
-
     /**
      * Open a new Main host GUI
      */
-    public MainGui(Player player) {
+    public HostMainGui(Player player) {
         INVENTORY.open(player);
     }
 
-    private static class MainProvider implements InventoryProvider {
+    private static class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Fill inventory of glass panes
-            ClickableItem empty = empty();
+            ClickableItem empty = Gui.empty();
             contents.set(0,0, empty);
             contents.set(0,1, empty);
             contents.set(0,7, empty);
@@ -66,13 +59,13 @@ public class MainGui {
             update(player, contents);
             //  Open WhiteList GUI
             contents.set(2, 1, ClickableItem.of(PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
-                    "Whitelisted players", getWhiteListLore()), e -> new WhiteList(player)));
+                    "Whitelisted players", getWhiteListLore()), e -> new HostWhiteList(player)));
             //  Open WaitList GUI
-            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e -> new WaitList(player)));
+            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e -> new HostWaitList(player)));
             //  Close GUI
-            contents.set(4, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
+            contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e -> INVENTORY.close(player)));
             //  Cancel host (With validation)
-            contents.set(4, 8, ClickableItem.of(getCancelButton(), e -> new CancelHost(player)));
+            contents.set(4, 8, ClickableItem.of(getCancelButton(), e -> new HostCancelConfirm(player)));
         }
 
         @Override
@@ -102,11 +95,9 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "private mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            /*
-            if (Main.HOST_ACCESS.getAccess().equals(InstanceAccess.AccessStates.PRIVATE)) {
+            if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.PRIVATE)) {
                 Glowing.addGlow(item);
             }
-            */
             return item;
         }
 
@@ -123,11 +114,9 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "waitList mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            /*
-            if (Main.HOST_ACCESS.getAccess().equals(InstanceAccess.AccessStates.REQUEST_TO_JOIN)) {
+            if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.REQUEST_TO_JOIN)) {
                 Glowing.addGlow(item);
             }
-            */
             return item;
         }
 
@@ -144,20 +133,26 @@ public class MainGui {
             waitListLore.add(ChatColor.GOLD + "open mode");
             meta.setLore(waitListLore);
             item.setItemMeta(meta);
-            /*
-            if (Main.HOST_ACCESS.getAccess().equals(AccessStates.OPEN)) {
+            if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.OPEN)) {
                 Glowing.addGlow(item);
             }
-            */
             return item;
         }
 
         @Contract(pure = true)
         private @NotNull Consumer<InventoryClickEvent> getAccessConsumer
                 (Player player, InventoryContents contents, AccessStates access) {
-            return e-> {
-                //  Main.HOST_ACCESS.setAccess(access);
-                update(player, contents);
+            return event -> {
+                try {
+                    Main.HOST_INSTANCE.setAccess(access);
+                    Main.getStorage().updateInstanceState(Main.HOST_INSTANCE);
+                    update(player, contents);
+                } catch (StorageExecuteException exception) {
+                    if (Main.DEBUG) {
+                        Main.getOwnLogger().info("Error while trying to update instance state in Storage.");
+                        exception.printStackTrace();
+                    }
+                }
             };
         }
 
@@ -186,17 +181,6 @@ public class MainGui {
             meta.setLore(waitListLore);
             waitListButton.setItemMeta(meta);
             return waitListButton;
-        }
-
-        /**
-         * Get close button ItemStack
-         */
-        private @NotNull ItemStack getCloseButton() {
-            ItemStack closeButton = new ItemStack(Material.ARROW);
-            ItemMeta meta = closeButton.getItemMeta();
-            meta.setDisplayName("§cClose menu");
-            closeButton.setItemMeta(meta);
-            return closeButton;
         }
 
         /**

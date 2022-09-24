@@ -1,11 +1,13 @@
 package fr.milekat.infra.workers.host.commands;
 
+import fr.milekat.infra.Main;
+import fr.milekat.infra.workers.host.gui.HostMainGui;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class OpenMainGui implements CommandExecutor {
+public class OpenHostMainGui implements CommandExecutor {
     /**
      * Executes the given command, returning its success
      *
@@ -19,7 +21,11 @@ public class OpenMainGui implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-
+            if (player.getUniqueId().equals(Main.HOST_PLAYER.getUniqueId())) {
+                new HostMainGui(player);
+            } else {
+                sender.sendMessage("§cOnly host can open this GUI.");
+            }
         }
         return true;
     }

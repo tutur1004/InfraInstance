@@ -1,5 +1,6 @@
 package fr.milekat.infra;
 
+import fr.milekat.infra.api.classes.Instance;
 import fr.milekat.infra.api.classes.ServerType;
 import fr.milekat.infra.messaging.Messaging;
 import fr.milekat.infra.messaging.MessagingManager;
@@ -25,6 +26,7 @@ public class Main extends JavaPlugin {
     public static final String LOBBY_PREFIX = "lobby";
     public static final String HOST_PREFIX = "host";
     public static Player HOST_PLAYER;
+    public static Instance HOST_INSTANCE;
     public static Map<UUID, String> WHITE_LIST = new HashMap<>();
     public static Map<UUID, String> WAIT_LIST = new HashMap<>();
 

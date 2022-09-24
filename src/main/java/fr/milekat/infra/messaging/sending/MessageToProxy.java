@@ -44,4 +44,19 @@ public class MessageToProxy {
         Main.getMessaging().sendMessage(Messaging.RABBIT_TO_ALL_PROXY,
                 MessageCase.GAME_READY, new ArrayList<>());
     }
+
+    /**
+     * Notify proxy: Host player want to rejoin his host instance
+     */
+    public static void notifyHostRejoin(@NotNull UUID uuid, String host) throws MessagingSendException {
+        Main.getMessaging().sendMessage(host, MessageCase.HOST_REJOIN, Collections.singletonList(uuid.toString()));
+    }
+
+    /**
+     * Notify proxy: Host player want to rejoin his host instance
+     */
+    public static void notifyCreateHost(@NotNull UUID uuid, int id) throws MessagingSendException {
+        Main.getMessaging().sendMessage(Messaging.RABBIT_TO_ALL_PROXY, MessageCase.ASK_CREATE_HOST,
+                Collections.singletonList(String.valueOf(id)));
+    }
 }

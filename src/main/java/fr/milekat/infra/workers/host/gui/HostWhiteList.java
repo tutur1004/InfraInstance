@@ -4,6 +4,7 @@ import fr.milekat.infra.Main;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.workers.host.players.PlayersList;
+import fr.milekat.infra.workers.utils.Gui;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
@@ -22,27 +23,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class WhiteList  {
+public class HostWhiteList {
     private static final SmartInventory INVENTORY = SmartInventory.builder()
             .id("whitelistGui")
             .manager(Main.INVENTORY_MANAGER)
-            .provider(new WhiteList.MainProvider())
+            .provider(new Provider())
             .size(6, 9)
             .title(ChatColor.DARK_AQUA + "Whitelisted players")
             .closeable(true)
+            .parent(HostMainGui.INVENTORY)
             .build();
 
     /**
      * Open a new whitelist GUI
      */
-    public WhiteList(Player player) {
+    public HostWhiteList(Player player) {
         INVENTORY.open(player);
     }
 
-    private static class MainProvider implements InventoryProvider {
+    private static class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
-            contents.fillBorders(MainGui.empty());
+            contents.fillBorders(Gui.empty());
             Pagination pagination = contents.pagination();
 
             updatePages(pagination);
@@ -55,7 +57,8 @@ public class WhiteList  {
                         e -> INVENTORY.open(player, pagination.previous().getPage())));
             }
             //  Close GUI
-            contents.set(5, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
+            contents.set(5, 4, ClickableItem.of(Gui.getCloseButton(), e ->
+                    INVENTORY.getParent().ifPresent(smartInventory -> smartInventory.open(player))));
             if (!pagination.isLast()) {
                 contents.set(5, 8, ClickableItem.of(
                         PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
@@ -107,17 +110,6 @@ public class WhiteList  {
                     .itemLeft(new ItemStack(Material.NAME_TAG))
                     .plugin(Main.getInstance())
                     .open(guiPlayer);
-        }
-
-        /**
-         * Get close button ItemStack
-         */
-        private @NotNull ItemStack getCloseButton() {
-            ItemStack closeButton = new ItemStack(Material.ARROW);
-            ItemMeta meta = closeButton.getItemMeta();
-            meta.setDisplayName("§cClose menu");
-            closeButton.setItemMeta(meta);
-            return closeButton;
         }
     }
 }

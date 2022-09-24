@@ -33,14 +33,22 @@ public enum MessageCase {
     HOST_DENIED_REQUEST,        // TODO : TEST then improve maybe ?
 
     //  From Lobby To Host
-    JOIN_REQUEST,               // Ignored by PROXY
+    /**
+     * 2: Uuid of player<br>
+     * 3: Name of player
+     */
+    JOIN_REQUEST,               // TODO : TEST
 
     //  From Lobby To Proxy
     /**
      * 2: Uuid of player<br>
-     * 3: GameId<br>
+     * 3: GameId
      */
     ASK_CREATE_HOST,            // TODO : TEST
+    /**
+     * 2: Uuid of player
+     */
+    HOST_REJOIN,                // TODO : TEST
 
     //  From Proxy To Lobby
     /**

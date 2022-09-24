@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * <p>Host server receive a message from Proxy server</p>
+ * <p>Server receive a message from Proxy server</p>
  * <p>Messages semantic:</p>
  * <p>0. {@link Messaging#getServerIdentifier()}
  * <br>1. {@link MessageCase}</p>
@@ -22,7 +22,7 @@ import java.util.UUID;
  * <p>{@link MessageCase#JOIN_REQUEST} A player ask to join the host (Without invitation while access is off)
  * <br>2. The {@link UUID} of the player who's asking
  * <br>3. The {@link Player#getName()} of the player who's asking</p>
- * */
+ */
 public class MessageFromProxy {
     public MessageFromProxy(List<String> message) {
         MessageCase mCase = MessageCase.valueOf(message.get(0));
@@ -31,15 +31,15 @@ public class MessageFromProxy {
                 if (message.size()==3) {
                     String invited = message.get(2);
                     Main.HOST_PLAYER.sendMessage("Invitation to " + invited + " sent !");
-                    break;
                 }
+                break;
             }
             case INVITE_RESULT_NOT_FOUND: {
                 if (message.size()==3) {
                     String invited = message.get(2);
                     Main.HOST_PLAYER.sendMessage("§6Player '" + invited + "' not found in lobby.");
-                    break;
                 }
+                break;
             }
             case INVITE_RESULT_DENY: {
                 if (message.size()==3) {
@@ -52,6 +52,7 @@ public class MessageFromProxy {
                 if (message.size()==4) {
                     Main.WAIT_LIST.put(UUID.fromString(message.get(2)), message.get(3));
                 }
+                break;
             }
         }
     }

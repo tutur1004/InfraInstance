@@ -2,6 +2,7 @@ package fr.milekat.infra.workers.host.gui;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.workers.host.players.PlayersList;
+import fr.milekat.infra.workers.utils.Gui;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
@@ -9,37 +10,35 @@ import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import fr.minuskube.inv.content.Pagination;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class WaitList {
+public class HostWaitList {
     private static final SmartInventory INVENTORY = SmartInventory.builder()
             .id("waitingGui")
             .manager(Main.INVENTORY_MANAGER)
-            .provider(new WaitList.MainProvider())
+            .provider(new Provider())
             .size(6, 9)
             .title(ChatColor.DARK_AQUA + "Waiting list")
             .closeable(true)
+            .parent(HostMainGui.INVENTORY)
             .build();
 
     /**
      * Open a new wait list GUI
      */
-    public WaitList(Player player) {
+    public HostWaitList(Player player) {
         INVENTORY.open(player);
     }
 
-    private static class MainProvider implements InventoryProvider {
+    private static class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
-            contents.fillBorders(MainGui.empty());
+            contents.fillBorders(Gui.empty());
             Pagination pagination = contents.pagination();
 
             updatePages(pagination);
@@ -51,7 +50,8 @@ public class WaitList {
                         e -> INVENTORY.open(player, pagination.previous().getPage())));
             }
             //  Close GUI
-            contents.set(5, 4, ClickableItem.of(getCloseButton(), e -> INVENTORY.close(player)));
+            contents.set(5, 4, ClickableItem.of(Gui.getCloseButton(), e ->
+                    INVENTORY.getParent().ifPresent(smartInventory -> smartInventory.open(player))));
             if (!pagination.isLast()) {
                 contents.set(5, 8, ClickableItem.of(
                         PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
@@ -77,17 +77,6 @@ public class WaitList {
                     })
             ));
             pagination.setItems(waiters.toArray(new ClickableItem[0]));
-        }
-
-        /**
-         * Get close button ItemStack
-         */
-        private @NotNull ItemStack getCloseButton() {
-            ItemStack closeButton = new ItemStack(Material.ARROW);
-            ItemMeta meta = closeButton.getItemMeta();
-            meta.setDisplayName("§cClose menu");
-            closeButton.setItemMeta(meta);
-            return closeButton;
         }
     }
 }
