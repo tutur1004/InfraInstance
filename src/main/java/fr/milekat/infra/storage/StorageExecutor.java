@@ -93,6 +93,12 @@ public interface StorageExecutor {
     List<Instance> getActiveInstances() throws StorageExecuteException;
 
     /**
+     * Get last queried list of active instances (If list is too old, or not exist, it will re-queried the list)
+     * @return list of instances
+     */
+    List<Instance> getActiveInstancesCached() throws StorageExecuteException;
+
+    /**
      * Query an instance
      * @param id of instance
      * @return instance (If exist)

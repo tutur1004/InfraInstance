@@ -12,10 +12,11 @@ public class Game {
     private final String serverVersion;
     private final String image;
     private final int requirements;
+    private final String icon;
     private final Map<String, String> configs;
 
     public Game(Integer id, String name, Date create, boolean enable, String gameVersion, String serverVersion,
-                String image, int requirements, Map<String, String> configs) {
+                String image, int requirements, String icon, Map<String, String> configs) {
         this.id = id;
         this.name = name;
         this.create = create;
@@ -24,6 +25,7 @@ public class Game {
         this.serverVersion = serverVersion;
         this.image = image;
         this.requirements = requirements;
+        this.icon = icon;
         this.configs = configs;
     }
 
@@ -57,6 +59,10 @@ public class Game {
 
     public int getRequirements() {
         return requirements;
+    }
+
+    public String getIcon() {
+        return icon;
     }
 
     public Map<String, String> getConfigs() {

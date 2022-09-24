@@ -21,13 +21,17 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class MySQLAdapter implements StorageExecutor {
     private final String SCHEMA_FILE = "infra_schema.sql";
-    private final long CACHE_DURATION = TimeUnit.MILLISECONDS.convert(30L, TimeUnit.MINUTES);
     private final MySQLPool DB;
     private final String PREFIX = Main.getFileConfig().getString("storage.mysql.prefix");
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
-    private Date CACHED_GAMES_REFRESH = null;
-    private List<Game> CACHED_GAMES;
+
+    private final long GAMES_DELAY = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
+    private Date GAMES_REFRESH = null;
+    private List<Game> GAMES_CACHE;
+    private final long INSTANCES_DELAY = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.SECONDS);
+    private Date INSTANCES_REFRESH = null;
+    private List<Instance> INSTANCES_CACHE;
 
     /*
         SQL Queries
@@ -84,7 +88,7 @@ public class MySQLAdapter implements StorageExecutor {
             "hostname=?, port=?, state=?, game=?, user=? " +
             "WHERE instance_id = ?";
     private final String UPDATE_INSTANCE_NAME = "UPDATE {prefix}instances SET instance_name=? WHERE instance_id = ?";
-    private final String UPDATE_INSTANCE_STATE = "UPDATE {prefix}instances SET state=? WHERE instance_id = ?";
+    private final String UPDATE_INSTANCE_STATE = "UPDATE {prefix}instances SET state=?, access=? WHERE instance_id = ?";
     private final String UPDATE_INSTANCE_ADDRESS = "UPDATE {prefix}instances " +
             "SET hostname=?, port=? WHERE instance_id = ?";
     private final String UPDATE_INSTANCE_CREATION = "UPDATE {prefix}instances " +
@@ -248,8 +252,8 @@ public class MySQLAdapter implements StorageExecutor {
             while (q.getResultSet().next()) {
                 games.add(resultSetToGame(q.getResultSet()));
             }
-            CACHED_GAMES = games;
-            CACHED_GAMES_REFRESH = new Date();
+            GAMES_CACHE = games;
+            GAMES_REFRESH = new Date();
             return games;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -262,10 +266,10 @@ public class MySQLAdapter implements StorageExecutor {
      */
     @Override
     public List<Game> getGamesCached() throws StorageExecuteException {
-        if (CACHED_GAMES_REFRESH == null || CACHED_GAMES_REFRESH.getTime() + CACHE_DURATION < new Date().getTime()) {
-            CACHED_GAMES = getGames();
+        if (GAMES_REFRESH == null || GAMES_REFRESH.getTime() + GAMES_DELAY < new Date().getTime()) {
+            GAMES_CACHE = getGames();
         }
-        return CACHED_GAMES;
+        return GAMES_CACHE;
     }
 
     /**
@@ -332,10 +336,24 @@ public class MySQLAdapter implements StorageExecutor {
             while (q.getResultSet().next()) {
                 instances.add(resultSetToInstance(q.getResultSet()));
             }
+            INSTANCES_CACHE = instances;
+            INSTANCES_REFRESH = new Date();
             return instances;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
         }
+    }
+
+    /**
+     * Get last queried list of active instances (If list is too old, or not exist, it will re-queried the list)
+     * @return list of instances
+     */
+    @Override
+    public List<Instance> getActiveInstancesCached() throws StorageExecuteException {
+        if (INSTANCES_REFRESH == null || INSTANCES_REFRESH.getTime() + INSTANCES_DELAY < new Date().getTime()) {
+            INSTANCES_CACHE = getActiveInstances();
+        }
+        return INSTANCES_CACHE;
     }
 
     /**
@@ -429,7 +447,8 @@ public class MySQLAdapter implements StorageExecutor {
         try (Connection connection = DB.getConnection();
              PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_STATE))) {
             q.setInt(1, instance.getState().getStateId());
-            q.setInt(2, instance.getId());
+            q.setInt(2, instance.getAccess().getAccessId());
+            q.setInt(3, instance.getId());
             q.execute();
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -692,6 +711,7 @@ public class MySQLAdapter implements StorageExecutor {
                 r.getString("server_version"),
                 r.getString("image"),
                 r.getInt("requirements"),
+                r.getString("icon"),
                 fetchConfigs(r.getInt("game_id")));
     }
 
