@@ -7,6 +7,7 @@ import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -49,7 +50,8 @@ public class MessageToProxy {
      * Notify proxy: Host player want to rejoin his host instance
      */
     public static void notifyHostRejoin(@NotNull UUID uuid, String host) throws MessagingSendException {
-        Main.getMessaging().sendMessage(host, MessageCase.HOST_REJOIN, Collections.singletonList(uuid.toString()));
+        Main.getMessaging().sendMessage(Messaging.RABBIT_TO_ALL_PROXY,
+                MessageCase.SEND_PLAYER, Arrays.asList(uuid.toString(), host));
     }
 
     /**
@@ -57,6 +59,6 @@ public class MessageToProxy {
      */
     public static void notifyCreateHost(@NotNull UUID uuid, int id) throws MessagingSendException {
         Main.getMessaging().sendMessage(Messaging.RABBIT_TO_ALL_PROXY, MessageCase.ASK_CREATE_HOST,
-                Collections.singletonList(String.valueOf(id)));
+                Arrays.asList(uuid.toString(), String.valueOf(id)));
     }
 }

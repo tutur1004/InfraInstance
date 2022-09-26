@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -62,15 +63,44 @@ public interface StorageExecutor {
 
     /**
      * Get last queried list of games (If list is too old, or not exist, it will re-queried the list)
+     *
      * @return "recent" list of games
      */
     List<Game> getGamesCached() throws StorageExecuteException;
 
     /**
-     * Get a games by name
+     * Get a games by id
      * @return game or null if not exist
      */
-    Game getGame(String name) throws StorageExecuteException;
+    Game getGame(int id) throws StorageExecuteException;
+
+    /**
+     * Get a games by name and version
+     * @return game or null if not exist
+     */
+    Game getGame(String name, String version) throws StorageExecuteException;
+
+    /**
+     * Get a games by id (But checking from game cache)
+     * @return game or null if not exist
+     */
+    default Game getGameCached(int id) throws StorageExecuteException {
+        Optional<Game> game = getGamesCached().stream().filter(gameFilter -> gameFilter.getId().equals(id)).findFirst();
+        return game.orElse(null);
+    }
+
+    /**
+     * Get a games by name  and version (But checking from game cache)
+     * @return game or null if not exist
+     */
+    default Game getGameCached(String name, String version) throws StorageExecuteException {
+        Optional<Game> game = getGamesCached()
+                .stream()
+                .filter(gameFilter -> gameFilter.getName().equals(name))
+                .filter(gameFilter -> gameFilter.getGameVersion().equals(version))
+                .findFirst();
+        return game.orElse(null);
+    }
 
     /**
      * Create a new game

@@ -42,7 +42,8 @@ public class MySQLAdapter implements StorageExecutor {
     private final String GET_TICKETS = "SELECT tickets FROM {prefix}users " +
             "WHERE uuid = ?;";
     private final String GET_GAMES = "SELECT * FROM {prefix}games;";
-    private final String GET_GAME = "SELECT * FROM {prefix}games WHERE game_name = ?;";
+    private final String GET_GAME_ID = "SELECT * FROM {prefix}games WHERE game_id = ?;";
+    private final String SEARCH_GAME = "SELECT * FROM {prefix}games WHERE game_name = ?, game_version = ?;";
     private final String GET_USERS = "SELECT * FROM {prefix}users;";
     private final String GET_USER = "SELECT * FROM {prefix}users WHERE last_name = ?;";
     private final String GET_USER_UUID = "SELECT * FROM {prefix}users WHERE uuid = ?;";
@@ -273,14 +274,32 @@ public class MySQLAdapter implements StorageExecutor {
     }
 
     /**
+     * Get a games by id
+     * @return game or null if not exist
+     */
+    @Override
+    public Game getGame(int id) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(GET_GAME_ID))) {
+            q.setInt(1, id);
+            q.execute();
+            if (q.getResultSet().next()) {
+                return resultSetToGame(q.getResultSet());
+            } else return null;
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }    }
+
+    /**
      * Query a games by name
      * @return game or null if not exist
      */
     @Override
-    public Game getGame(String gameName) throws StorageExecuteException {
+    public Game getGame(String gameName, String version) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
-             PreparedStatement q = connection.prepareStatement(formatQuery(GET_GAME))) {
+             PreparedStatement q = connection.prepareStatement(formatQuery(SEARCH_GAME))) {
             q.setString(1, gameName);
+            q.setString(2, version);
             q.execute();
             if (q.getResultSet().next()) {
                 return resultSetToGame(q.getResultSet());

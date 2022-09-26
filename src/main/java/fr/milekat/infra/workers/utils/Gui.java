@@ -1,5 +1,6 @@
 package fr.milekat.infra.workers.utils;
 
+import fr.milekat.infra.api.classes.AccessStates;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.content.InventoryContents;
 import org.bukkit.Material;
@@ -71,6 +72,19 @@ public class Gui {
      */
     public static ItemStack getIcon(String icon, String name, List<String> lore) {
         ItemStack itemStack = getIcon(icon);
+        ItemMeta meta = itemStack.getItemMeta();
+        meta.setDisplayName(name);
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return itemStack;
+    }
+
+    /**
+     * Method to get a custom infra server icon
+     */
+    public static ItemStack getIcon(AccessStates icon, String name, List<String> lore) {
+        ItemStack itemStack = new ItemStack(Material.STAINED_CLAY);
+        itemStack.setDurability((short) (icon.equals(AccessStates.OPEN) ? 5 : 4));
         ItemMeta meta = itemStack.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(lore);

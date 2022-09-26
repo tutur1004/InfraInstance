@@ -3,9 +3,9 @@ package fr.milekat.infra.workers.lobby.gui;
 import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.InstanceState;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.workers.utils.Gui;
+import fr.milekat.infra.workers.utils.JoinHandler;
 import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
@@ -81,14 +81,13 @@ public class LobbyMyHosts {
                             .filter(instance -> instance.getUser().getUuid().equals(player.getUniqueId()))
                             .filter(instance -> instance.getState().equals(InstanceState.READY))
                             .forEach(instance -> myHosts.add(ClickableItem.of(
-                                    PlayerHead.getPlayerSkull(
-                                            instance.getUser().getLastName(),
+                                    Gui.getIcon(instance.getGame().getIcon(),
                                             instance.getName(),
                                             Arrays.asList(instance.getDescription(), instance.getMessage())),
                                     event -> {
                                         try {
-                                            MessageToProxy.notifyHostRejoin(event.getWhoClicked().getUniqueId(),
-                                                    instance.getName());
+                                            JoinHandler.serverClick(instance, event.getWhoClicked().getUniqueId(),
+                                                    event.getWhoClicked().getName());
                                         } catch (MessagingSendException exception) {
                                             event.getWhoClicked().sendMessage("§cError, please try again.");
                                         }

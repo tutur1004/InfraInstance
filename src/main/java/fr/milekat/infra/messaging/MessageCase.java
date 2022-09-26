@@ -47,8 +47,9 @@ public enum MessageCase {
     ASK_CREATE_HOST,            // TODO : TEST
     /**
      * 2: Uuid of player
+     * 3: Instance name
      */
-    HOST_REJOIN,                // TODO : TEST
+    SEND_PLAYER,                // TODO : TEST
 
     //  From Proxy To Lobby
     /**

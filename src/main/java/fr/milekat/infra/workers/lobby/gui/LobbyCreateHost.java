@@ -76,6 +76,9 @@ public class LobbyCreateHost {
                                         } catch (MessagingSendException exception) {
                                             event.getWhoClicked().sendMessage("§cError, please try again.");
                                         }
+                                        // TODO: 26/09/2022 Game versions
+                                        INVENTORY.getParent().ifPresent(smartInventory ->
+                                                smartInventory.open((Player) event.getWhoClicked()));
                                     }))
                             );
                     contents.pagination().setItems(availableGames.toArray(new ClickableItem[0]));
