@@ -5,7 +5,8 @@ storage:
   type: mysql
   mysql:
     prefix: "infra_"
-    hostname: "localhost:3306"
+    hostname: "localhost"
+    port: 3306
     database: "minecraft"
     username: "user"
     password: "pass"

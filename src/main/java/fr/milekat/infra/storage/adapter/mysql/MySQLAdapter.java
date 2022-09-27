@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class MySQLAdapter implements StorageExecutor {
     private final String SCHEMA_FILE = "infra_schema.sql";
-    private final MySQLPool DB;
+    private final MySQLDataSource DB;
     private final String PREFIX = Main.getFileConfig().getString("storage.mysql.prefix");
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
@@ -109,7 +109,7 @@ public class MySQLAdapter implements StorageExecutor {
     }
 
     public MySQLAdapter(FileConfiguration config) throws StorageLoaderException {
-        DB = new MySQLPool(config);
+        DB = new MySQLDataSource(config);
         try {
             if (!checkStorages()) {
                 applySchema();
