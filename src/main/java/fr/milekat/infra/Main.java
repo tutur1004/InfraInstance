@@ -5,8 +5,8 @@ import fr.milekat.infra.api.classes.ServerType;
 import fr.milekat.infra.messaging.Messaging;
 import fr.milekat.infra.messaging.MessagingManager;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
-import fr.milekat.infra.storage.StorageExecutor;
-import fr.milekat.infra.storage.StorageManager;
+import fr.milekat.infra.storage.Storage;
+import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
 import fr.milekat.infra.workers.WorkerManager;
 import fr.minuskube.inv.InventoryManager;
@@ -42,7 +42,7 @@ public class Main extends JavaPlugin {
     private static FileConfiguration configFile;
     public static ServerType SERVER_TYPE;
     public static Boolean DEBUG = false;
-    private static StorageManager LOADED_STORAGE;
+    private static Storage LOADED_STORAGE;
     private static MessagingManager LOADED_MESSAGING;
 
     @Override
@@ -57,7 +57,7 @@ public class Main extends JavaPlugin {
         getOwnLogger().info("Server type: " + SERVER_TYPE.name());
         //  Load storage
         try {
-            LOADED_STORAGE = new StorageManager(configFile);
+            LOADED_STORAGE = new Storage(configFile);
             if (DEBUG) {
                 getOwnLogger().info("Storage enable, API is now available");
             }
@@ -105,11 +105,11 @@ public class Main extends JavaPlugin {
     }
 
     /**
-     * Get Storage Database Executor
-     * @return Storage executor
+     * Get Storage
+     * @return Storage implementation
      */
-    public static StorageExecutor getStorage() {
-        return LOADED_STORAGE.getStorageExecutor();
+    public static StorageImplementation getStorage() {
+        return LOADED_STORAGE.getStorageImplementation();
     }
 
     /**
@@ -130,7 +130,7 @@ public class Main extends JavaPlugin {
 
     /**
      * Get the plugin instance
-     * @return bungee-cord plugin instance
+     * @return bukkit plugin instance
      */
     public static JavaPlugin getInstance() {
         return plugin;

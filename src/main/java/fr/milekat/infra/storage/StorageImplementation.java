@@ -14,17 +14,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
-public interface StorageExecutor {
-    /**
-     * Disconnect from Storage server
-     */
-    void disconnect();
-
+public interface StorageImplementation {
     /**
      * Check if all storages are loaded
      * @return true if all storages are loaded
      */
     boolean checkStorages() throws StorageExecuteException;
+
+    /**
+     * Get the implemented (Used) storage type
+     * @return storage type
+     */
+    String getImplementationName();
+
+    /**
+     * Disconnect from Storage provider
+     */
+    void disconnect();
 
     /*
         Tickets

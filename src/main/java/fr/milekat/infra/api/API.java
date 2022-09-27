@@ -6,7 +6,7 @@ import fr.milekat.infra.api.classes.ServerType;
 import fr.milekat.infra.api.classes.User;
 import fr.milekat.infra.api.events.GameFinishedEvent;
 import fr.milekat.infra.api.events.GameStartEvent;
-import fr.milekat.infra.storage.StorageExecutor;
+import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public class API {
-    private static final StorageExecutor STORAGE = Main.getStorage();
+    private static final StorageImplementation STORAGE = Main.getStorage();
 
     /*
         This host

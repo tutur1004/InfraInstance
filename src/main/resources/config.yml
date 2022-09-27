@@ -1,25 +1,35 @@
 # Debug mode
 debug: false
-# Storage system (Only mysql is supported for now)
+# Storage system
 storage:
+  #   Available storage type (Please fill related connection section)
+  #   (sql)  |=>  MySQL
+  #   (sql)  |=>  MariaDB (Recommended)
+  #   (sql)  |=>  Postgres
   type: mysql
-  mysql:
-    prefix: "infra_"
+  prefix: "infra_"
+  sql:
     hostname: "localhost"
-    port: 3306
+    port: "3306"
     database: "minecraft"
     username: "user"
     password: "pass"
 # Messaging system
 messaging:
-  # Available types:
-  #   RabbitMQ: RabbitMQ's connection need to be setup in messaging.rabbit-mq section !
-  #   None: If you only need the API, without other plugin functions
+  #   Available messaging type (Please fill related connection section)
+  #   |=> RabbitMQ  =>  RabbitMQ's connection need to be setup in messaging.rabbit-mq section !
+  #   |=> Redis     =>  (WIP not available)
+  #   |=> None:     =>  If you only need the API, without other plugin functions
   type: None
+  prefix: "infra."
   rabbit-mq:
-    prefix: "infra."
     hostname: "localhost"
     port: 5672
+    username: "user"
+    password: "pass"
+  redis:
+    address: localhost
+    port: 6379
     username: "user"
     password: "pass"
 # The type can be "host" for a game server or "lobby" for a lobby server

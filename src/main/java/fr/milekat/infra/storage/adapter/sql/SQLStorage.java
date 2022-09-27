@@ -1,8 +1,8 @@
-package fr.milekat.infra.storage.adapter.mysql;
+package fr.milekat.infra.storage.adapter.sql;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.*;
-import fr.milekat.infra.storage.StorageExecutor;
+import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -19,10 +19,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-public class MySQLAdapter implements StorageExecutor {
+public class SQLStorage implements StorageImplementation {
     private final String SCHEMA_FILE = "infra_schema.sql";
-    private final MySQLDataSource DB;
-    private final String PREFIX = Main.getFileConfig().getString("storage.mysql.prefix");
+    private final SQLDataBaseConnection DB;
+    private final String PREFIX = Main.getFileConfig().getString("storage.prefix");
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
 
@@ -100,16 +100,8 @@ public class MySQLAdapter implements StorageExecutor {
     private final String UPDATE_CREATE_USER = "INSERT INTO {prefix}users (uuid, last_name) " +
             "VALUES (?,?) ON DUPLICATE KEY UPDATE last_name = ?;";
 
-    /**
-     * Format query by replacing {prefix} with {@link MySQLAdapter#PREFIX}
-     */
-    @Contract(pure = true)
-    private @NotNull String formatQuery(@NotNull String query) {
-        return query.replaceAll("\\{prefix}", PREFIX);
-    }
-
-    public MySQLAdapter(FileConfiguration config) throws StorageLoaderException {
-        DB = new MySQLDataSource(config);
+    public SQLStorage(FileConfiguration config) throws StorageLoaderException {
+        DB = new SQLConnection(config).getSqlDataBaseConnection();
         try {
             if (!checkStorages()) {
                 applySchema();
@@ -120,11 +112,24 @@ public class MySQLAdapter implements StorageExecutor {
     }
 
     /**
+     * Format query by replacing {prefix} with {@link SQLStorage#PREFIX}
+     */
+    @Contract(pure = true)
+    private @NotNull String formatQuery(@NotNull String query) {
+        return query.replaceAll("\\{prefix}", PREFIX);
+    }
+
+    @Override
+    public String getImplementationName() {
+        return DB.getImplementationName();
+    }
+
+    /**
      * Disconnect from HikariCP pool
      */
     @Override
     public void disconnect() {
-        DB.disconnect();
+        DB.close();
     }
 
     /**
@@ -137,7 +142,7 @@ public class MySQLAdapter implements StorageExecutor {
             if (schemaFileIS == null) {
                 throw new StorageLoaderException("Missing schema file");
             }
-            statements = MySQLUtils.getQueries(schemaFileIS).stream()
+            statements = SQLUtils.getQueries(schemaFileIS).stream()
                     .map(this::formatQuery)
                     .collect(Collectors.toList());
         }

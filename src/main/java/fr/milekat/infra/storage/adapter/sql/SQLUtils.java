@@ -1,4 +1,4 @@
-package fr.milekat.infra.storage.adapter.mysql;
+package fr.milekat.infra.storage.adapter.sql;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Snipped from LuckPerms plugin
  */
-public class MySQLUtils {
+public class SQLUtils {
     /**
      * Convert file input stream into List of SQL queries
      */
