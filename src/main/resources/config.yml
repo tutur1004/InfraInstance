@@ -28,7 +28,7 @@ messaging:
     username: "user"
     password: "pass"
   redis:
-    address: localhost
+    hostname: localhost
     port: 6379
     username: "user"
     password: "pass"

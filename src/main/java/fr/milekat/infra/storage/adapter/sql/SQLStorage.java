@@ -2,6 +2,7 @@ package fr.milekat.infra.storage.adapter.sql;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.*;
+import fr.milekat.infra.storage.Storage;
 import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
@@ -15,92 +16,128 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class SQLStorage implements StorageImplementation {
     private final String SCHEMA_FILE = "infra_schema.sql";
     private final SQLDataBaseConnection DB;
+    private final String DatabaseName;
     private final String PREFIX = Main.getFileConfig().getString("storage.prefix");
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
 
-    private final long GAMES_DELAY = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
-    private Date GAMES_REFRESH = null;
-    private List<Game> GAMES_CACHE;
-    private final long INSTANCES_DELAY = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.SECONDS);
-    private Date INSTANCES_REFRESH = null;
-    private List<Instance> INSTANCES_CACHE;
-
     /*
         SQL Queries
      */
-    private final String CHECK_TABLE = "SELECT TABLE_NAME FROM information_schema.TABLES " +
-            "WHERE TABLE_NAME = ?;";
+    private final String CHECK_TABLE = "SELECT TABLE_NAME " +
+            "FROM information_schema.TABLES " +
+            "WHERE TABLE_SCHEMA=? AND TABLE_NAME = ?;";
 
-    private final String GET_TICKETS = "SELECT tickets FROM {prefix}users " +
-            "WHERE uuid = ?;";
-    private final String GET_GAMES = "SELECT * FROM {prefix}games;";
-    private final String GET_GAME_ID = "SELECT * FROM {prefix}games WHERE game_id = ?;";
-    private final String SEARCH_GAME = "SELECT * FROM {prefix}games WHERE game_name = ?, game_version = ?;";
-    private final String GET_USERS = "SELECT * FROM {prefix}users;";
-    private final String GET_USER = "SELECT * FROM {prefix}users WHERE last_name = ?;";
-    private final String GET_USER_UUID = "SELECT * FROM {prefix}users WHERE uuid = ?;";
-    private final String GET_ACTIVE_INSTANCES = "SELECT * FROM {prefix}instances i " +
-            "INNER JOIN {prefix}games g ON i.game=g.game_id " +
-            "INNER JOIN {prefix}users u ON i.user=u.user_id " +
+    //  Tables
+    private final String STRUCTURE_GAME = "g.`id`, g.`name`, g.`description`, g.`create_date`, " +
+            "g.`enable`, g.`version`, g.`image`, g.`requirements`, g.`icon` ";
+    private final String STRUCTURE_USER = "u.`id`, u.`uuid`, u.`last_name`, u.`tickets` ";
+    private final String STRUCTURE_INSTANCE = "i.`id`, i.`name`, i.`server_id`, " +
+            "i.`description`, i.`message`, i.`port`, i.`hostname`, i.`state`, i.`access`, " +
+            "i.`game`, i.`user`, i.`creation`, i.`deletion` " + "," + STRUCTURE_GAME  + "," + STRUCTURE_USER;
+    private final String STRUCTURE_LOGS = "l.`id`, l.`date`, l.`instance`, l.`action`, l.`user`, l.`game` ";
+
+    //  Queries
+    private final String GET_TICKETS = "SELECT tickets " +
+            "FROM {prefix}users u " +
+            "WHERE u.uuid = ?;";
+    private final String GET_GAMES = "SELECT " + STRUCTURE_GAME +
+            "FROM {prefix}games g;";
+    private final String GET_GAME_ID = "SELECT " + STRUCTURE_GAME +
+            "FROM {prefix}games g " +
+            "WHERE g.id = ?;";
+    private final String SEARCH_GAME = "SELECT " + STRUCTURE_GAME +
+            "FROM {prefix}games g " +
+            "WHERE g.name = ? AND g.version = ?;";
+    private final String GET_USERS = "SELECT " + STRUCTURE_USER +
+            "FROM {prefix}users u;";
+    private final String GET_USER = "SELECT " + STRUCTURE_USER +
+            "FROM {prefix}users u " +
+            "WHERE u.last_name = ?;";
+    private final String GET_USER_UUID = "SELECT " + STRUCTURE_USER +
+            "FROM {prefix}users u " +
+            "WHERE u.uuid = ?;";
+    private final String GET_ACTIVE_INSTANCES = "SELECT " + STRUCTURE_INSTANCE +
+            "FROM {prefix}instances i " +
+            "INNER JOIN {prefix}games g ON i.game=g.id " +
+            "INNER JOIN {prefix}users u ON i.user=u.id " +
             "WHERE i.state <>4;";
-    private final String GET_INSTANCE_WITH_ID = "SELECT * FROM {prefix}instances i " +
-            "INNER JOIN {prefix}games g ON i.game=g.game_id " +
-            "INNER JOIN {prefix}users u ON i.user=u.user_id " +
-            "WHERE i.state <>4 AND i.instance_id = ?;";
-    private final String GET_INSTANCE_WITH_NAME = "SELECT * FROM {prefix}instances i " +
-            "INNER JOIN {prefix}games g ON i.game=g.game_id " +
-            "INNER JOIN {prefix}users u ON i.user=u.user_id " +
-            "WHERE i.state <>4 AND i.instance_name = ?;";
-    private final String GET_N_LOGS = "SELECT * FROM {prefix}logs ORDER BY log_id DESC LIMIT ?;";
+    private final String GET_INSTANCE_WITH_ID = "SELECT " + STRUCTURE_INSTANCE +
+            "FROM {prefix}instances i " +
+            "INNER JOIN {prefix}games g ON i.game=g.id " +
+            "INNER JOIN {prefix}users u ON i.user=u.id " +
+            "WHERE i.state <>4 AND i.id = ?;";
+    private final String GET_INSTANCE_WITH_NAME = "SELECT " + STRUCTURE_INSTANCE +
+            "FROM {prefix}instances i " +
+            "INNER JOIN {prefix}games g ON i.game=g.id " +
+            "INNER JOIN {prefix}users u ON i.user=u.id " +
+            "WHERE i.state <>4 AND i.name = ?;";
+    private final String GET_N_LOGS = "SELECT " +
+            "FROM {prefix}logs l " +
+            "ORDER BY l.log_id DESC LIMIT ?;";
     private final String GET_LOGS_WITHIN_DATE = "SELECT * FROM {prefix}logs l " +
-            "INNER JOIN {prefix}instances i ON l.instance = i.instance_id " +
-            "INNER JOIN {prefix}users u on l.user = u.user_id " +
-            "INNER JOIN {prefix}games g on l.game = g.game_id " +
+            "INNER JOIN {prefix}instances i ON l.instance = i.id " +
+            "INNER JOIN {prefix}users u on l.user = u.id " +
+            "INNER JOIN {prefix}games g on l.game = g.id " +
             "WHERE (l.log_date BETWEEN ? AND ?);";
-    private final String FIND_AVAILABLE_PORTS = "SELECT port FROM {prefix}instances " +
-            "WHERE state <>4;";
-    private final String FETCH_GAME_CONFIGS = "SELECT props.property_name as var, props.value as val " +
+    private final String FIND_AVAILABLE_PORTS = "SELECT port " +
+            "FROM {prefix}instances i " +
+            "WHERE i.state <>4;";
+    private final String FETCH_GAME_CONFIGS = "SELECT props.name as var, props.value as val " +
             "FROM {prefix}properties props " +
-            "INNER JOIN {prefix}profiles prof ON props.profile=prof.profile_id " +
+            "INNER JOIN {prefix}profiles prof ON props.profile=prof.id " +
             "LEFT JOIN {prefix}game_strategies str ON props.profile=str.profile " +
-            "WHERE props.enable=1 AND (prof.profile_name='global' OR (str.game=? AND prof.enable=1)) " +
+            "WHERE props.enable=1 AND (prof.name='global' OR (str.game=? AND prof.enable=1)) " +
             "ORDER BY props.profile DESC;";
 
-    private final String ADD_TICKETS = "UPDATE {prefix}users SET tickets = tickets + ? WHERE uuid=?;";
-    private final String REMOVE_TICKETS = "UPDATE {prefix}users SET tickets = tickets - ? WHERE uuid=?;";
-    private final String CREATE_GAME = "INSERT INTO {prefix}games " +
+    private final String ADD_TICKETS = "UPDATE {prefix}users u" +
+            "SET u.tickets = u.tickets + ? " +
+            "WHERE u.uuid=?;";
+    private final String REMOVE_TICKETS = "UPDATE {prefix}users u" +
+            "SET u.tickets = u.tickets - ? " +
+            "WHERE u.uuid=?;";
+    private final String CREATE_GAME = "INSERT INTO {prefix}games" +
             "(name, enable, image, requirements) " +
             "VALUES (?,?,?,?);";
-    private final String CREATE_INSTANCE = "INSERT INTO {prefix}instances " +
-            "(instance_name, instance_description, port, game, user) VALUES (?,?,?,?,?);";
+    private final String CREATE_INSTANCE = "INSERT INTO {prefix}instances" +
+            "(name, description, port, game, user) VALUES (?,?,?,?,?);";
 
     private final String UPDATE_GAME = "UPDATE {prefix}games " +
             "SET name=?, enable=?, image=?, requirements=?";
     private final String UPDATE_INSTANCE_FULL = "UPDATE {prefix}instances " +
-            "SET instance_name=?, instance_server_id=?, instance_description=?, instance_message=?, " +
-            "hostname=?, port=?, state=?, game=?, user=? " +
-            "WHERE instance_id = ?";
-    private final String UPDATE_INSTANCE_NAME = "UPDATE {prefix}instances SET instance_name=? WHERE instance_id = ?";
-    private final String UPDATE_INSTANCE_STATE = "UPDATE {prefix}instances SET state=?, access=? WHERE instance_id = ?";
+            "SET name=?, server_id=?, description=?, message=?, " +
+            "hostname=?, port=?, state=? " +
+            "WHERE id = ?";
+    private final String UPDATE_INSTANCE_NAME = "UPDATE {prefix}instances " +
+            "SET name=? " +
+            "WHERE id = ?";
+    private final String UPDATE_INSTANCE_STATE = "UPDATE {prefix}instances " +
+            "SET state=?, access=? " +
+            "WHERE id = ?";
     private final String UPDATE_INSTANCE_ADDRESS = "UPDATE {prefix}instances " +
-            "SET hostname=?, port=? WHERE instance_id = ?";
+            "SET hostname=?, port=? " +
+            "WHERE id = ?";
     private final String UPDATE_INSTANCE_CREATION = "UPDATE {prefix}instances " +
-            "SET creation=? WHERE instance_id = ?";
+            "SET creation=? " +
+            "WHERE id = ?";
     private final String UPDATE_INSTANCE_DELETION = "UPDATE {prefix}instances " +
-            "SET deletion=? WHERE instance_id = ?";
-    private final String UPDATE_USER = "UPDATE {prefix}users SET uuid=?, last_name=?, tickets=? WHERE uuid=?;";
-    private final String UPDATE_CREATE_USER = "INSERT INTO {prefix}users (uuid, last_name) " +
+            "SET deletion=? " +
+            "WHERE id = ?";
+    private final String UPDATE_USER = "UPDATE {prefix}users " +
+            "SET uuid=?, last_name=?, tickets=? " +
+            "WHERE uuid=?;";
+    private final String UPDATE_CREATE_USER = "INSERT INTO {prefix}users" +
+            "(uuid, last_name) " +
             "VALUES (?,?) ON DUPLICATE KEY UPDATE last_name = ?;";
 
-    public SQLStorage(FileConfiguration config) throws StorageLoaderException {
+    public SQLStorage(@NotNull FileConfiguration config) throws StorageLoaderException {
+        DatabaseName = config.getString("storage.sql.database");
         DB = new SQLConnection(config).getSqlDataBaseConnection();
         try {
             if (!checkStorages()) {
@@ -170,11 +207,12 @@ public class SQLStorage implements StorageImplementation {
         try (Connection connection = DB.getConnection()) {
             for (String table : TABLES) {
                 try (PreparedStatement q = connection.prepareStatement(formatQuery(CHECK_TABLE))) {
-                    q.setString(1, table);
+                    q.setString(1, DatabaseName);
+                    q.setString(2, table);
                     q.execute();
                     if (!q.getResultSet().next()) {
                         if (Main.DEBUG) {
-                            Main.getOwnLogger().warning("Table: " + table + " is not loaded properly");
+                            Main.getOwnLogger().warning("Table: " + table + " not found in " + DatabaseName);
                         }
                         return false;
                     }
@@ -258,8 +296,7 @@ public class SQLStorage implements StorageImplementation {
             while (q.getResultSet().next()) {
                 games.add(resultSetToGame(q.getResultSet()));
             }
-            GAMES_CACHE = games;
-            GAMES_REFRESH = new Date();
+            games.forEach(game -> Storage.GAMES_CACHE.put(game, new Date()));
             return games;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -272,10 +309,12 @@ public class SQLStorage implements StorageImplementation {
      */
     @Override
     public List<Game> getGamesCached() throws StorageExecuteException {
-        if (GAMES_REFRESH == null || GAMES_REFRESH.getTime() + GAMES_DELAY < new Date().getTime()) {
-            GAMES_CACHE = getGames();
+        if (Storage.GAMES_CACHE.values().stream()
+                .anyMatch(date -> date.getTime() + Storage.GAMES_DELAY < new Date().getTime())) {
+            return getGames();
+        } else  {
+            return new ArrayList<>(Storage.GAMES_CACHE.keySet());
         }
-        return GAMES_CACHE;
     }
 
     /**
@@ -360,8 +399,7 @@ public class SQLStorage implements StorageImplementation {
             while (q.getResultSet().next()) {
                 instances.add(resultSetToInstance(q.getResultSet()));
             }
-            INSTANCES_CACHE = instances;
-            INSTANCES_REFRESH = new Date();
+            instances.forEach(instance -> Storage.INSTANCES_CACHE.put(instance, new Date()));
             return instances;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -369,15 +407,17 @@ public class SQLStorage implements StorageImplementation {
     }
 
     /**
-     * Get last queried list of active instances (If list is too old, or not exist, it will re-queried the list)
+     * Get last queried list of active instances (If cache is too old, or not exist, it will re-queried the list)
      * @return list of instances
      */
     @Override
     public List<Instance> getActiveInstancesCached() throws StorageExecuteException {
-        if (INSTANCES_REFRESH == null || INSTANCES_REFRESH.getTime() + INSTANCES_DELAY < new Date().getTime()) {
-            INSTANCES_CACHE = getActiveInstances();
+        if (Storage.INSTANCES_CACHE.values().stream()
+                .anyMatch(date -> date.getTime() + Storage.INSTANCES_DELAY < new Date().getTime())) {
+            return getActiveInstances();
+        } else  {
+            return new ArrayList<>(Storage.INSTANCES_CACHE.keySet());
         }
-        return INSTANCES_CACHE;
     }
 
     /**
@@ -445,9 +485,7 @@ public class SQLStorage implements StorageImplementation {
             q.setString(5, instance.getHostname());
             q.setInt(6, instance.getPort());
             q.setInt(7, instance.getState().getStateId());
-            q.setInt(8, instance.getGame().getId());
-            q.setInt(9, instance.getUser().getId());
-            q.setInt(10, instance.getId());
+            q.setInt(8, instance.getId());
             q.execute();
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -525,7 +563,7 @@ public class SQLStorage implements StorageImplementation {
             q.execute();
             List<Integer> usedPorts = new ArrayList<>();
             while (q.getResultSet().next()) {
-                usedPorts.add(q.getResultSet().getInt("port"));
+                usedPorts.add(q.getResultSet().getInt("i.port"));
             }
             for (Integer port : ports) {
                 if (!usedPorts.contains(port)) {
@@ -550,11 +588,11 @@ public class SQLStorage implements StorageImplementation {
         try (Connection connection = DB.getConnection();
              PreparedStatement q = connection.prepareStatement(formatQuery(GET_USERS))) {
             q.execute();
-            List<User> games = new ArrayList<>();
+            List<User> users = new ArrayList<>();
             while (q.getResultSet().next()) {
-                games.add(resultSetToUser(q.getResultSet()));
+                users.add(resultSetToUser(q.getResultSet()));
             }
-            return games;
+            return users;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
         }
@@ -572,7 +610,9 @@ public class SQLStorage implements StorageImplementation {
             q.setString(1, name);
             q.execute();
             if (q.getResultSet().next()) {
-                return resultSetToUser(q.getResultSet());
+                User user = resultSetToUser(q.getResultSet());
+                Storage.USERS_CACHE.put(user, new Date());
+                return user;
             } else return null;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -591,10 +631,31 @@ public class SQLStorage implements StorageImplementation {
             q.setString(1, uuid.toString());
             q.execute();
             if (q.getResultSet().next()) {
-                return resultSetToUser(q.getResultSet());
+                User user = resultSetToUser(q.getResultSet());
+                Storage.USERS_CACHE.put(user, new Date());
+                return user;
             } else return null;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    /**
+     * Get a user if present from cache, otherwise try to query the user
+     * @param uuid of player
+     * @return User or null
+     */
+    @Override
+    public @Nullable User getUserCache(UUID uuid) throws StorageExecuteException {
+        Optional<Map.Entry<User, Date>> optionalUser = Storage.USERS_CACHE.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().getUuid().equals(uuid))
+                .filter(entry -> entry.getValue().getTime() + Storage.USERS_DELAY > new Date().getTime())
+                .findFirst();
+        if (optionalUser.isPresent()) {
+            return optionalUser.get().getKey();
+        } else  {
+            return getUser(uuid);
         }
     }
 
@@ -700,21 +761,21 @@ public class SQLStorage implements StorageImplementation {
     private @NotNull Instance resultSetToInstance(@NotNull ResultSet r) throws SQLException {
         Date creation = null;
         Date deletion = null;
-        if (r.getTimestamp("creation")!=null) {
-            creation = new Date(r.getTimestamp("creation").getTime());
+        if (r.getTimestamp("i.creation")!=null) {
+            creation = new Date(r.getTimestamp("i.creation").getTime());
         }
-        if (r.getTimestamp("deletion")!=null) {
-            deletion = new Date(r.getTimestamp("deletion").getTime());
+        if (r.getTimestamp("i.deletion")!=null) {
+            deletion = new Date(r.getTimestamp("i.deletion").getTime());
         }
-        return new Instance(r.getInt("instance_id"),
-                r.getString("instance_name"),
-                r.getString("instance_server_id"),
-                r.getString("instance_description"),
-                r.getString("instance_message"),
-                r.getString("hostname"),
-                r.getInt("port"),
-                InstanceState.fromInteger(r.getInt("state")),
-                AccessStates.fromInteger(r.getInt("access")),
+        return new Instance(r.getInt("i.id"),
+                r.getString("i.name"),
+                r.getString("i.server_id"),
+                r.getString("i.description"),
+                r.getString("i.message"),
+                r.getString("i.hostname"),
+                r.getInt("i.port"),
+                InstanceState.fromInteger(r.getInt("i.state")),
+                AccessStates.fromInteger(r.getInt("i.access")),
                 resultSetToGame(r),
                 resultSetToUser(r),
                 creation,
@@ -727,16 +788,16 @@ public class SQLStorage implements StorageImplementation {
      */
     @Contract("_ -> new")
     private @NotNull Game resultSetToGame(@NotNull ResultSet r) throws SQLException {
-        return new Game(r.getInt("game_id"),
-                r.getString("game_name"),
-                new Date(r.getTimestamp("create_date").getTime()),
-                r.getBoolean("enable"),
-                r.getString("game_version"),
-                r.getString("server_version"),
-                r.getString("image"),
-                r.getInt("requirements"),
-                r.getString("icon"),
-                fetchConfigs(r.getInt("game_id")));
+        return new Game(r.getInt("g.id"),
+                r.getString("g.name"),
+                r.getString("g.description"),
+                new Date(r.getTimestamp("g.create_date").getTime()),
+                r.getBoolean("g.enable"),
+                r.getString("g.version"),
+                r.getString("g.image"),
+                r.getInt("g.requirements"),
+                r.getString("g.icon"),
+                fetchConfigs(r.getInt("g.id")));
     }
 
     /**
@@ -744,9 +805,9 @@ public class SQLStorage implements StorageImplementation {
      */
     @Contract("_ -> new")
     private @NotNull Log resultSetToLog(@NotNull ResultSet r) throws SQLException {
-        return new Log(new Date(r.getTimestamp("log_date").getTime()),
+        return new Log(new Date(r.getTimestamp("l.log_date").getTime()),
                 resultSetToInstance(r),
-                LogAction.fromInteger(r.getInt("action")),
+                LogAction.fromInteger(r.getInt("l.action")),
                 resultSetToUser(r),
                 resultSetToGame(r));
     }
@@ -756,10 +817,10 @@ public class SQLStorage implements StorageImplementation {
      */
     @Contract("_ -> new")
     private @NotNull User resultSetToUser(@NotNull ResultSet r) throws SQLException {
-        return new User(r.getInt("user_id"),
-                UUID.fromString(r.getString("uuid")),
-                r.getString("last_name"),
-                r.getInt("tickets"));
+        return new User(r.getInt("u.id"),
+                UUID.fromString(r.getString("u.uuid")),
+                r.getString("u.last_name"),
+                r.getInt("u.tickets"));
     }
 
     /**

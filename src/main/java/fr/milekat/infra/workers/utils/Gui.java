@@ -3,6 +3,7 @@ package fr.milekat.infra.workers.utils;
 import fr.milekat.infra.api.classes.AccessStates;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.content.InventoryContents;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -62,7 +63,7 @@ public class Gui {
     public static ItemStack getIcon(String icon, String name) {
         ItemStack itemStack = getIcon(icon);
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(name);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         itemStack.setItemMeta(meta);
         return itemStack;
     }
@@ -73,12 +74,14 @@ public class Gui {
     public static ItemStack getIcon(String icon, String name, List<String> lore) {
         ItemStack itemStack = getIcon(icon);
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(name);
-        meta.setLore(lore);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+        List<String> formattedLore = new ArrayList<>();
+        lore.forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
+        meta.setLore(formattedLore);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
-
+    // TODO: 29/09/2022 Check here, something is maybe broke :/
     /**
      * Method to get a custom infra server icon
      */
@@ -86,8 +89,10 @@ public class Gui {
         ItemStack itemStack = new ItemStack(Material.STAINED_CLAY);
         itemStack.setDurability((short) (icon.equals(AccessStates.OPEN) ? 5 : 4));
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(name);
-        meta.setLore(lore);
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+        List<String> formattedLore = new ArrayList<>();
+        lore.forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
+        meta.setLore(formattedLore);
         itemStack.setItemMeta(meta);
         return itemStack;
     }

@@ -103,7 +103,7 @@ public interface StorageImplementation {
         Optional<Game> game = getGamesCached()
                 .stream()
                 .filter(gameFilter -> gameFilter.getName().equals(name))
-                .filter(gameFilter -> gameFilter.getGameVersion().equals(version))
+                .filter(gameFilter -> gameFilter.getVersion().equals(version))
                 .findFirst();
         return game.orElse(null);
     }
@@ -222,6 +222,14 @@ public interface StorageImplementation {
      */
     @Nullable
     User getUser(UUID uuid) throws StorageExecuteException;
+
+    /**
+     * Get a user if present from cache, otherwise try to query the user
+     * @param uuid of player
+     * @return User or null
+     */
+    @Nullable
+    User getUserCache(UUID uuid) throws StorageExecuteException;
 
     /**
      * Create or Update user if exist
