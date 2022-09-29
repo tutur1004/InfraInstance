@@ -1,8 +1,11 @@
 package fr.milekat.infra.workers.utils;
 
+import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.AccessStates;
 import fr.minuskube.inv.ClickableItem;
+import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
+import fr.minuskube.inv.content.Pagination;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -11,7 +14,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Gui {
     /**
@@ -37,7 +42,7 @@ public class Gui {
         return closeButton;
     }
 
-    public static List<String> getPlayerStats(Player player) {
+    public static @NotNull List<String> getPlayerStats(@NotNull Player player) {
         List<String> stats = new ArrayList<>();
         stats.add(player.getName());
         stats.add(player.getUniqueId().toString());
@@ -47,7 +52,7 @@ public class Gui {
     /**
      * Method to get a custom infra server icon
      */
-    public static ItemStack getIcon(String icon) {
+    public static @NotNull ItemStack getIcon(@NotNull String icon) {
         ItemStack itemStack = new ItemStack(Material.BARRIER);
         if (icon.startsWith("t:")) {
             itemStack = PlayerHead.getTextureSkull(icon);
@@ -60,7 +65,7 @@ public class Gui {
     /**
      * Method to get a custom infra server icon
      */
-    public static ItemStack getIcon(String icon, String name) {
+    public static @NotNull ItemStack getIcon(String icon, String name) {
         ItemStack itemStack = getIcon(icon);
         ItemMeta meta = itemStack.getItemMeta();
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -71,12 +76,13 @@ public class Gui {
     /**
      * Method to get a custom infra server icon
      */
-    public static ItemStack getIcon(String icon, String name, List<String> lore) {
-        ItemStack itemStack = getIcon(icon);
+    public static @NotNull ItemStack getIcon(String icon, String name, @NotNull List<String> lore) {
+        ItemStack itemStack = getIcon(icon, name);
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         List<String> formattedLore = new ArrayList<>();
-        lore.forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
+        lore.stream()
+                .filter(Objects::nonNull)
+                .forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
         meta.setLore(formattedLore);
         itemStack.setItemMeta(meta);
         return itemStack;
@@ -85,29 +91,75 @@ public class Gui {
     /**
      * Method to get a custom infra server icon
      */
-    public static ItemStack getIcon(AccessStates icon, String name, List<String> lore) {
+    public static @NotNull ItemStack getIcon(@NotNull AccessStates icon, String name, @NotNull List<String> lore) {
         ItemStack itemStack = new ItemStack(Material.STAINED_CLAY);
         itemStack.setDurability((short) (icon.equals(AccessStates.OPEN) ? 5 : 4));
         ItemMeta meta = itemStack.getItemMeta();
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         List<String> formattedLore = new ArrayList<>();
-        lore.forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
+        lore.stream()
+                .filter(Objects::nonNull)
+                .forEach(str -> formattedLore.add(ChatColor.translateAlternateColorCodes('&', str)));
         meta.setLore(formattedLore);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
 
+    public static void pagesDefault(@NotNull Player player, @NotNull InventoryContents contents, GuiPages inventory) {
+        contents.fillBorders(Gui.empty());
+        //  Player infos
+        contents.set(0, 4, ClickableItem.empty(
+                PlayerHead.getPlayerSkull(player.getName(), "Your stats", Gui.getPlayerStats(player))));
+        Pagination pagination = contents.pagination();
+        pagination.setItemsPerPage(28);
+        //  Close GUI
+        contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e ->
+                inventory.getInventory().getParent().ifPresent(smartInventory -> smartInventory.open(player))));
+    }
+
+    public static void pagesButtons(@NotNull Player player, @NotNull InventoryContents contents, GuiPages inventory) {
+        Pagination pagination = contents.pagination();
+        pagination.setItemsPerPage(21);
+        if (!pagination.isFirst()) {
+            contents.set(4, 0, ClickableItem.of(
+                    PlayerHead.getTextureSkull(PlayerHead.Arrow_Left, "Previous"),
+                    e -> {
+                        inventory.getInventory().open(player, pagination.previous().getPage());
+                        inventory.updatePages(contents, player);
+                    }));
+        }
+        if (!pagination.isLast()) {
+            contents.set(4, 8, ClickableItem.of(
+                    PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
+                    e -> {
+                        inventory.getInventory().open(player, pagination.next().getPage());
+                        inventory.updatePages(contents, player);
+                    }));
+        }
+    }
+
+    /**
+     * Little algorithm to fill in square pattern an inventory between 2 slots
+     * @param contents Inventory
+     */
     public static void fillPage(@NotNull InventoryContents contents,
-                                int fromRow, int fromColumn, int toRow, int toColumn,
-                                List<ClickableItem> item) {
+                                int fromRow, int fromColumn, int toRow, int toColumn) {
+        List<ClickableItem> items = Arrays.asList(contents.pagination().getPageItems());
+        Main.getOwnLogger().info("5:" + items.size());
         for(int row = fromRow; row <= toRow; row++) {
             for(int column = fromColumn; column <= toColumn; column++) {
                 int index = (column - fromColumn) + ((row - fromRow) * ((toColumn + 1) - fromColumn));
-                if (item.size() <= index) {
+                if (items.size() <= index) {
                     return;
                 }
-                contents.set(row, column, item.get(index));
+                contents.set(row, column, items.get(index));
             }
         }
+    }
+
+    public interface GuiPages {
+        SmartInventory getInventory();
+
+        void updatePages(InventoryContents contents, Player player);
     }
 }

@@ -6,12 +6,10 @@ import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.workers.utils.Gui;
 import fr.milekat.infra.workers.utils.JoinHandler;
-import fr.milekat.infra.workers.utils.PlayerHead;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
-import fr.minuskube.inv.content.Pagination;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -39,32 +37,15 @@ public class LobbyMyHosts {
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider {
+    private static class Provider implements InventoryProvider, Gui.GuiPages {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
-            contents.fillBorders(Gui.empty());
-            Pagination pagination = contents.pagination();
+            //  Default gui pages setup
+            Gui.pagesDefault(player, contents, this);
 
             updatePages(contents, player);
-            pagination.setItemsPerPage(28);
-
-            //  Player infos
-            contents.set(0, 4, ClickableItem.empty(
-                    PlayerHead.getPlayerSkull(player.getName(), "Your stats", Gui.getPlayerStats(player))));
-
-            if (!pagination.isFirst()) {
-                contents.set(4, 0, ClickableItem.of(
-                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Left, "Previous"),
-                        e -> INVENTORY.open(player, pagination.previous().getPage())));
-            }
-            //  Close GUI
-            contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e ->
-                    INVENTORY.getParent().ifPresent(smartInventory -> smartInventory.open(player))));
-            if (!pagination.isLast()) {
-                contents.set(4, 8, ClickableItem.of(
-                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
-                        e -> INVENTORY.open(player, pagination.next().getPage())));
-            }
+            //  Update pages content
+            updatePages(contents, player);
         }
 
         @Override
@@ -72,7 +53,13 @@ public class LobbyMyHosts {
             updatePages(contents, player);
         }
 
-        private void updatePages(@NotNull InventoryContents contents, Player player) {
+        @Override
+        public SmartInventory getInventory() {
+            return INVENTORY;
+        }
+
+        @Override
+        public void updatePages(@NotNull InventoryContents contents, Player player) {
             Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), ()-> {
                 try {
                     List<ClickableItem> myHosts = new ArrayList<>();
@@ -94,7 +81,7 @@ public class LobbyMyHosts {
                                     }))
                             );
                     contents.pagination().setItems(myHosts.toArray(new ClickableItem[0]));
-                    Gui.fillPage(contents, 1,1, 3,7, myHosts);
+                    Gui.fillPage(contents, 1,1, 3,7);
                 } catch (StorageExecuteException exception) {
                     if (Main.DEBUG) {
                         Main.getOwnLogger().info("Error while trying to load instances in Storage.");
