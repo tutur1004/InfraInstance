@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -90,23 +89,13 @@ public interface StorageImplementation {
      * Get a games by id (But checking from game cache)
      * @return game or null if not exist
      */
-    default Game getGameCached(int id) throws StorageExecuteException {
-        Optional<Game> game = getGamesCached().stream().filter(gameFilter -> gameFilter.getId().equals(id)).findFirst();
-        return game.orElse(null);
-    }
+    Game getGameCached(int id) throws StorageExecuteException;
 
     /**
      * Get a games by name  and version (But checking from game cache)
      * @return game or null if not exist
      */
-    default Game getGameCached(String name, String version) throws StorageExecuteException {
-        Optional<Game> game = getGamesCached()
-                .stream()
-                .filter(gameFilter -> gameFilter.getName().equals(name))
-                .filter(gameFilter -> gameFilter.getVersion().equals(version))
-                .findFirst();
-        return game.orElse(null);
-    }
+    Game getGameCached(String name, String version) throws StorageExecuteException;
 
     /**
      * Create a new game

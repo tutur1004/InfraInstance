@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class Storage {
-    public static final long GAMES_DELAY = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.MINUTES);
+    public static final long GAMES_DELAY = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.MINUTES);
     public static Map<Game, Date> GAMES_CACHE = new HashMap<>();
     public static final long INSTANCES_DELAY = TimeUnit.MILLISECONDS.convert(2L, TimeUnit.SECONDS);
     public static Map<Instance, Date> INSTANCES_CACHE = new HashMap<>();
-    public static final long USERS_DELAY = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.SECONDS);
+    public static final long USERS_DELAY = TimeUnit.MILLISECONDS.convert(2L, TimeUnit.SECONDS);
     public static Map<User, Date> USERS_CACHE = new HashMap<>();
 
     private final StorageImplementation executor;

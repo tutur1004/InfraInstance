@@ -309,7 +309,7 @@ public class SQLStorage implements StorageImplementation {
      */
     @Override
     public List<Game> getGamesCached() throws StorageExecuteException {
-        if (Storage.GAMES_CACHE.values().stream()
+        if (Storage.GAMES_CACHE.size() == 0 || Storage.GAMES_CACHE.values().stream()
                 .anyMatch(date -> date.getTime() + Storage.GAMES_DELAY < new Date().getTime())) {
             return getGames();
         } else  {
@@ -328,11 +328,14 @@ public class SQLStorage implements StorageImplementation {
             q.setInt(1, id);
             q.execute();
             if (q.getResultSet().next()) {
-                return resultSetToGame(q.getResultSet());
+                Game game = resultSetToGame(q.getResultSet());
+                Storage.GAMES_CACHE.put(game, new Date());
+                return game;
             } else return null;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
-        }    }
+        }
+    }
 
     /**
      * Query a games by name
@@ -346,10 +349,49 @@ public class SQLStorage implements StorageImplementation {
             q.setString(2, version);
             q.execute();
             if (q.getResultSet().next()) {
-                return resultSetToGame(q.getResultSet());
+                Game game = resultSetToGame(q.getResultSet());
+                Storage.GAMES_CACHE.put(game, new Date());
+                return game;
             } else return null;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    /**
+     * Get a games by id (But checking from game cache)
+     * @return game or null if not exist
+     */
+    @Override
+    public Game getGameCached(int id) throws StorageExecuteException {
+        Optional<Map.Entry<Game, Date>> optionalUser = Storage.GAMES_CACHE.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().getId().equals(id))
+                .filter(entry -> entry.getValue().getTime() + Storage.GAMES_DELAY > new Date().getTime())
+                .findFirst();
+        if (optionalUser.isPresent()) {
+            return optionalUser.get().getKey();
+        } else  {
+            return getGame(id);
+        }
+    }
+
+    /**
+     * Get a games by name  and version (But checking from game cache)
+     * @return game or null if not exist
+     */
+    @Override
+    public Game getGameCached(String name, String version) throws StorageExecuteException {
+        Optional<Map.Entry<Game, Date>> optionalUser = Storage.GAMES_CACHE.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().getName().equalsIgnoreCase(name))
+                .filter(entry -> entry.getKey().getVersion().equalsIgnoreCase(version))
+                .filter(entry -> entry.getValue().getTime() + Storage.GAMES_DELAY > new Date().getTime())
+                .findFirst();
+        if (optionalUser.isPresent()) {
+            return optionalUser.get().getKey();
+        } else  {
+            return getGame(name, version);
         }
     }
 
@@ -412,7 +454,7 @@ public class SQLStorage implements StorageImplementation {
      */
     @Override
     public List<Instance> getActiveInstancesCached() throws StorageExecuteException {
-        if (Storage.INSTANCES_CACHE.values().stream()
+        if (Storage.INSTANCES_CACHE.size() == 0 || Storage.INSTANCES_CACHE.values().stream()
                 .anyMatch(date -> date.getTime() + Storage.INSTANCES_DELAY < new Date().getTime())) {
             return getActiveInstances();
         } else  {

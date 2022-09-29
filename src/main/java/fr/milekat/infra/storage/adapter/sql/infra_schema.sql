@@ -78,7 +78,7 @@ CREATE INDEX `{prefix}games_strategies` ON `{prefix}game_strategies` (`game`);
 
 ALTER TABLE `{prefix}games`
     ADD PRIMARY KEY (`id`),
-    ADD CONSTRAINT `unique_name` UNIQUE (`name`);
+    ADD CONSTRAINT `unique_name_version` UNIQUE (`name`, `version`);
 
 ALTER TABLE `{prefix}instances`
     ADD PRIMARY KEY (`id`),
