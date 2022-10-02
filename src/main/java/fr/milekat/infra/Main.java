@@ -30,8 +30,8 @@ public class Main extends JavaPlugin {
     public static Map<UUID, String> WHITE_LIST = new HashMap<>();
     public static Map<UUID, String> WAIT_LIST = new HashMap<>();
 
-    public static final Integer INSTANCE_ID = Integer.parseInt(
-            System.getenv("INSTANCE_ID") == null ? "0" : System.getenv("INSTANCE_ID"));
+    public static final Integer INSTANCE_ID =
+            Integer.parseInt(System.getenv("INSTANCE_ID") == null ? "0" : System.getenv("INSTANCE_ID"));
     public static final String SERVER_ID = System.getenv("SERVER_ID");
     public static final String SERVER_NAME = System.getenv("SERVER_NAME");
     public static final String GAME = System.getenv("GAME");

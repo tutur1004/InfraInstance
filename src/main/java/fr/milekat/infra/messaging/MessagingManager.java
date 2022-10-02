@@ -19,12 +19,13 @@ public class MessagingManager {
                 Main.getOwnLogger().info("Loading messaging type: " + messagingProvider);
             }
             if (messagingProvider.equalsIgnoreCase("none")) {
-                messaging = null;
+                messaging = new DefaultMessaging();
                 return;
             } else if (messagingProvider.equalsIgnoreCase("rabbitmq")) {
                 new ReceiveRabbitMessage().getRabbitConsumerThread().start();
                 messaging = new SendRabbitMessage();
             } else if (messagingProvider.equalsIgnoreCase("redis")) {
+                // TODO: 02/10/2022 Redis consumer
                 messaging = new SendRedisMessage();
             } else {
                 throw new MessagingLoaderException("Unsupported messaging type");
@@ -44,4 +45,6 @@ public class MessagingManager {
     public Messaging getMessaging() {
         return this.messaging;
     }
+
+    public static class DefaultMessaging implements Messaging {}
 }

@@ -24,13 +24,17 @@ public class WorkerManager {
                 if (Main.HOST_INSTANCE!=null) {
                     Main.HOST_INSTANCE.setState(InstanceState.READY);
                     Main.getStorage().updateInstanceState(Main.HOST_INSTANCE);
-                    MessageToProxy.notifyGameReady();
+                    if (Main.getMessaging().isActivate()) {
+                        MessageToProxy.notifyGameReady();
+                    }
                     Main.getOwnLogger().info("Server Ready.");
                 } else {
                     Main.getOwnLogger().warning("Host instance not found");
                 }
-            } catch (MessagingSendException | StorageExecuteException exception) {
-                Main.getOwnLogger().warning("Error while trying to load");
+            } catch (StorageExecuteException exception) {
+                Main.getOwnLogger().warning("Error while trying to load workers");
+            } catch (MessagingSendException exception) {
+                Main.getOwnLogger().warning("Server ready with a messaging error");
             }
         } else if (Main.SERVER_TYPE.equals(ServerType.LOBBY)) {
             plugin.getCommand("host").setExecutor(new OpenLobbyMainGui());

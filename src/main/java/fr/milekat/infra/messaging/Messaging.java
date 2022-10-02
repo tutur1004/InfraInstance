@@ -41,12 +41,18 @@ public interface Messaging {
         } else return "unknown";
     }
 
+    default boolean isActivate() {
+        return false;
+    }
+
     /**
      * Check if the provider is reachable
      * @return true if message sent successfully
      * @throws MessagingSendException triggered if send failed
      */
-    boolean checkSending() throws MessagingSendException;
+    default boolean checkSending() throws MessagingSendException {
+        return false;
+    }
 
     /**
      * Send a message through messaging provider
@@ -55,11 +61,15 @@ public interface Messaging {
      * @param mCase   Type of message
      * @param message to send
      */
-    void sendMessage(String target, MessageCase mCase, List<String> message)
-            throws MessagingSendException;
+    default void sendMessage(String target, MessageCase mCase, List<String> message)
+            throws MessagingSendException {
+        if (Main.DEBUG) Main.getOwnLogger().warning("Messaging is disable");
+    }
 
     /**
      * Disconnect from the message provider
      */
-    void disconnect();
+    default void disconnect() {
+        if (Main.DEBUG) Main.getOwnLogger().info("Messaging disconnected");
+    }
 }

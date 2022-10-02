@@ -18,6 +18,7 @@ import java.util.concurrent.TimeoutException;
 
 public class SendRabbitMessage implements Messaging {
     private final ConnectionFactory factory;
+    private final boolean activate;
 
     public SendRabbitMessage() throws MessagingLoaderException {
         ConnectionFactory connectionFactory = new ConnectionFactory();
@@ -32,6 +33,12 @@ public class SendRabbitMessage implements Messaging {
             throw new MessagingLoaderException("Error while trying to init RabbitMQ sending");
         }
         this.factory = connectionFactory;
+        activate = true;
+    }
+
+    @Override
+    public boolean isActivate() {
+        return activate;
     }
 
     @Override
@@ -52,7 +59,6 @@ public class SendRabbitMessage implements Messaging {
     /**
      * Send a message to the proxy server
      *
-     * @param ignored source player
      * @param target  Targeted channel (RoutingKey for RabbitMQ)
      * @param mCase   Type of message
      * @param message to send
