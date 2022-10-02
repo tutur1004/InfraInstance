@@ -2,8 +2,8 @@ package fr.milekat.infra;
 
 import fr.milekat.infra.api.classes.Instance;
 import fr.milekat.infra.api.classes.ServerType;
+import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.Messaging;
-import fr.milekat.infra.messaging.MessagingManager;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
 import fr.milekat.infra.storage.Storage;
 import fr.milekat.infra.storage.StorageImplementation;
@@ -43,7 +43,7 @@ public class Main extends JavaPlugin {
     public static ServerType SERVER_TYPE;
     public static Boolean DEBUG = false;
     private static Storage LOADED_STORAGE;
-    private static MessagingManager LOADED_MESSAGING;
+    private static Messaging LOADED_MESSAGING;
 
     @Override
     public void onEnable() {
@@ -72,7 +72,7 @@ public class Main extends JavaPlugin {
         }
         //  Load messaging (Optional since this plugin can be used only as an API)
         try {
-            LOADED_MESSAGING = new MessagingManager(configFile);
+            LOADED_MESSAGING = new Messaging(configFile);
         } catch (MessagingLoaderException exception) {
             getOwnLogger().warning("Messaging load failed, disabling plugin..");
             getOwnLogger().warning("If you only need the API, set messaging.type to 'none'.");
@@ -116,7 +116,7 @@ public class Main extends JavaPlugin {
      * Get Messaging
      * @return Messaging interface
      */
-    public static Messaging getMessaging() {
+    public static MessagingImplementation getMessaging() {
         return LOADED_MESSAGING.getMessaging();
     }
 

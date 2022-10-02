@@ -6,7 +6,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import fr.milekat.infra.Main;
 import fr.milekat.infra.messaging.MessageCase;
-import fr.milekat.infra.messaging.Messaging;
+import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-public class SendRabbitMessage implements Messaging {
+public class SendRabbitMessage implements MessagingImplementation {
     private final ConnectionFactory factory;
     private final boolean activate;
 
@@ -28,7 +28,8 @@ public class SendRabbitMessage implements Messaging {
         connectionFactory.setPassword(Main.getFileConfig().getString("messaging.rabbit-mq.password"));
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()) {
-            channel.exchangeDeclare(Messaging.RABBIT_EXCHANGE, Messaging.RABBIT_EXCHANGE_TYPE);
+            channel.exchangeDeclare(MessagingImplementation.RABBIT_EXCHANGE,
+                    MessagingImplementation.RABBIT_EXCHANGE_TYPE);
         } catch (IOException | TimeoutException exception) {
             throw new MessagingLoaderException("Error while trying to init RabbitMQ sending");
         }
@@ -69,10 +70,10 @@ public class SendRabbitMessage implements Messaging {
         try (Connection connection = this.factory.newConnection();
              Channel channel = connection.createChannel()) {
             List<String> list = new ArrayList<>();
-            list.add(Messaging.PREFIX + Messaging.getServerIdentifier());
+            list.add(MessagingImplementation.PREFIX + MessagingImplementation.getServerIdentifier());
             list.add(mCase.name());
             list.addAll(message);
-            channel.basicPublish(Messaging.RABBIT_EXCHANGE, target, null,
+            channel.basicPublish(MessagingImplementation.RABBIT_EXCHANGE, target, null,
                     new Gson().toJson(list).getBytes(StandardCharsets.UTF_8));
         } catch (Exception exception) {
             throw new MessagingSendException(exception, "Error while trying to send message");

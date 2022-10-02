@@ -8,7 +8,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import fr.milekat.infra.Main;
 import fr.milekat.infra.messaging.MessageCase;
-import fr.milekat.infra.messaging.Messaging;
+import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.processing.MessageFromHost;
 import fr.milekat.infra.messaging.processing.MessageFromLobby;
 import fr.milekat.infra.messaging.processing.MessageFromProxy;
@@ -39,11 +39,12 @@ public class ReceiveRabbitMessage {
             try {
                 Connection connection = this.factory.newConnection();
                 Channel channel = connection.createChannel();
-                channel.exchangeDeclare(Messaging.RABBIT_EXCHANGE, Messaging.RABBIT_EXCHANGE_TYPE);
-                channel.queueDeclare(Messaging.RABBIT_QUEUE, false, true,
+                channel.exchangeDeclare(MessagingImplementation.RABBIT_EXCHANGE,
+                        MessagingImplementation.RABBIT_EXCHANGE_TYPE);
+                channel.queueDeclare(MessagingImplementation.RABBIT_QUEUE, false, true,
                         true, null);
-                channel.queueBind(Messaging.RABBIT_QUEUE, Messaging.RABBIT_EXCHANGE,
-                        Messaging.RABBIT_ROUTING_KEY);
+                channel.queueBind(MessagingImplementation.RABBIT_QUEUE, MessagingImplementation.RABBIT_EXCHANGE,
+                        MessagingImplementation.RABBIT_ROUTING_KEY);
                 DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                     String strRaw = "";
                     try {
@@ -77,7 +78,8 @@ public class ReceiveRabbitMessage {
                         }
                     }
                 };
-                channel.basicConsume(Messaging.RABBIT_QUEUE, true, deliverCallback, consumerTag -> {});
+                channel.basicConsume(MessagingImplementation.RABBIT_QUEUE, true, deliverCallback,
+                        consumerTag -> {});
             } catch (IOException | TimeoutException exception) {
                 exception.printStackTrace();
             }

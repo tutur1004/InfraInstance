@@ -1,5 +1,5 @@
 package fr.milekat.infra.messaging.adapter.redis;
 
-import fr.milekat.infra.messaging.Messaging;
+import fr.milekat.infra.messaging.MessagingImplementation;
 
-public class SendRedisMessage implements Messaging {}
+public class SendRedisMessage implements MessagingImplementation {}

@@ -2,7 +2,7 @@ package fr.milekat.infra.messaging.processing;
 
 import fr.milekat.infra.Main;
 import fr.milekat.infra.messaging.MessageCase;
-import fr.milekat.infra.messaging.Messaging;
+import fr.milekat.infra.messaging.MessagingImplementation;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * <p>Server receive a message from Proxy server</p>
  * <p>Messages semantic:</p>
- * <p>0. {@link Messaging#getServerIdentifier()}
+ * <p>0. {@link MessagingImplementation#getServerIdentifier()}
  * <br>1. {@link MessageCase}</p>
  * <p>{@link MessageCase#INVITE_SENT} Proxy has handle the request
  * <br>2. {@link Player} invited</p>
