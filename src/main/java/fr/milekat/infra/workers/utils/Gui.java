@@ -87,7 +87,7 @@ public class Gui {
         itemStack.setItemMeta(meta);
         return itemStack;
     }
-    // TODO: 29/09/2022 Check here, something is maybe broke :/
+
     /**
      * Method to get a custom infra server icon
      */
@@ -145,7 +145,6 @@ public class Gui {
     public static void fillPage(@NotNull InventoryContents contents,
                                 int fromRow, int fromColumn, int toRow, int toColumn) {
         List<ClickableItem> items = Arrays.asList(contents.pagination().getPageItems());
-        Main.getOwnLogger().info("5:" + items.size());
         for(int row = fromRow; row <= toRow; row++) {
             for(int column = fromColumn; column <= toColumn; column++) {
                 int index = (column - fromColumn) + ((row - fromRow) * ((toColumn + 1) - fromColumn));

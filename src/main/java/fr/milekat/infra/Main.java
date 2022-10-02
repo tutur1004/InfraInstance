@@ -5,6 +5,8 @@ import fr.milekat.infra.api.classes.ServerType;
 import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.Messaging;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
+import fr.milekat.infra.messaging.exeptions.MessagingSendException;
+import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.storage.Storage;
 import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
@@ -22,6 +24,7 @@ import java.util.logging.Logger;
 
 public class Main extends JavaPlugin {
     public static final String HOST_UUID_ENV_VAR_NAME = "HOST_UUID";
+    public static final String HOST_FREE_ENV_VAR_NAME = "HOST_FREE";
     public static final String PROXY_PREFIX = "proxy";
     public static final String LOBBY_PREFIX = "lobby";
     public static final String HOST_PREFIX = "host";
@@ -88,6 +91,16 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (Main.getFileConfig().getBoolean("auto-terminate")) {
+            try {
+                MessageToProxy.notifyGameFinish();
+            } catch (MessagingSendException exception) {
+                if (Main.DEBUG) {
+                    getOwnLogger().warning("Error while trying to notify Game Finish");
+                    exception.printStackTrace();
+                }
+            }
+        }
         try {
             getStorage().disconnect();
         } catch (Exception ignored) {}

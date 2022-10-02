@@ -35,3 +35,5 @@ messaging:
 # The type can be "host" for a game server or "lobby" for a lobby server
 # If you only need the API you can set "none"
 server-type: lobby
+# Terminate on server stop (Only needed for server-type: host)
+auto-terminate: false
