@@ -12,6 +12,7 @@ public class Instance {
     private int port;
     private InstanceState state;
     private AccessStates access;
+    private int slots;
     private final Game game;
     private final User user;
     private Date creation;
@@ -36,7 +37,7 @@ public class Instance {
     }
 
     public Instance(Integer id, String name, String serverId, String description, String message, String hostname,
-                    int port, InstanceState state, AccessStates access, Game game, User user, Date creation,
+                    int port, InstanceState state, AccessStates access, int slots, Game game, User user, Date creation,
                     Date deletion) {
         this.id = id;
         this.name = name;
@@ -47,6 +48,7 @@ public class Instance {
         this.port = port;
         this.state = state;
         this.access = access;
+        this.slots = slots;
         this.game = game;
         this.user = user;
         this.creation = creation;
@@ -115,6 +117,14 @@ public class Instance {
 
     public void setAccess(AccessStates access) {
         this.access = access;
+    }
+
+    public int getSlots() {
+        return slots;
+    }
+
+    public void setSlots(int slots) {
+        this.slots = slots;
     }
 
     public Game getGame() {

@@ -27,6 +27,7 @@ CREATE TABLE `{prefix}instances` (
 `port` smallint(5) NOT NULL COMMENT 'Instance port',
 `state` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Game state\n0: Creating\n1: Ready\n2: In progress\n3: Ending\n4: Terminated',
 `access` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Access state\n0: PRIVATE\n1: REQUEST_TO_JOIN\n2: OPEN',
+`slots` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Number of slots',
 `game` smallint(5) UNSIGNED NULL COMMENT 'Game of this instance',
 `user` int(10) UNSIGNED DEFAULT NULL COMMENT 'Host user',
 `creation` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Date of instance creation',

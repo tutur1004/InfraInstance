@@ -168,6 +168,12 @@ public interface StorageImplementation {
     void updateInstanceAddress(@NotNull Instance instance) throws StorageExecuteException;
 
     /**
+     * Update {@link Instance#getSlots()}
+     * @param instance should contain at least {@link Instance#getId()}
+     */
+    void updateInstanceSlots(@NotNull Instance instance) throws StorageExecuteException;
+
+    /**
      * Update {@link Instance#getCreation()}
      * @param instance should contain at least {@link Instance#getId()}
      */

@@ -25,12 +25,11 @@ public class API {
     /**
      * Method to get the Minecraft {@link UUID} of the player who own this hosted game.
      * If this server is not a {@link ServerType#HOST}, return null
-     *
      * @return Minecraft {@link UUID} of {@link Player}
      */
     @Nullable
     public static UUID getHost() {
-        if (Main.SERVER_TYPE.equals(ServerType.HOST) || System.getenv().containsKey(Main.HOST_UUID_ENV_VAR_NAME)) {
+        if (Main.SERVER_TYPE.equals(ServerType.HOST) && System.getenv().containsKey(Main.HOST_UUID_ENV_VAR_NAME)) {
             return UUID.fromString(System.getenv(Main.HOST_UUID_ENV_VAR_NAME));
         } else {
             return null;
@@ -49,7 +48,6 @@ public class API {
     /**
      * Method to get the {@link Instance} of this host.
      * If this server is not a {@link ServerType#HOST}, return null
-     *
      * @return {@link Instance}
      */
     @Nullable
@@ -86,6 +84,34 @@ public class API {
             if (instance!=null) {
                 instance.setMessage(message);
                 updateInstance(instance);
+            }
+        }
+    }
+
+    /**
+     * Method to get the number of slots on this {@link ServerType#HOST}.
+     * If this server is not a {@link ServerType#HOST}, return null
+     * @return number of slots of this host
+     */
+    public static int getHostSlots() throws StorageExecuteException {
+        if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
+            return getInstance(Main.SERVER_NAME).getSlots();
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * Method to update the number of slots on this {@link ServerType#HOST}.
+     * If this server is not a {@link ServerType#HOST}, it will be ignored
+     * @param slots number of slots
+     */
+    public static void updateHostSlots(int slots) throws StorageExecuteException {
+        if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
+            Instance instance = getHostInstance();
+            if (instance != null) {
+                instance.setSlots(slots);
+                STORAGE.updateInstanceSlots(instance);
             }
         }
     }
@@ -138,10 +164,16 @@ public class API {
     /*
         Global Instance
      */
+    /**
+     * Method to update an instance by name.
+     */
     public static Instance getInstance(String name) throws StorageExecuteException {
         return STORAGE.getInstance(name);
     }
 
+    /**
+     * Method to update an instance.
+     */
     public static void updateInstance(Instance instance) throws StorageExecuteException {
         STORAGE.updateInstance(instance);
     }

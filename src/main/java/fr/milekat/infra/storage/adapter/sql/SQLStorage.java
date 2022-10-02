@@ -39,7 +39,7 @@ public class SQLStorage implements StorageImplementation {
             "g.`enable`, g.`version`, g.`image`, g.`requirements`, g.`icon` ";
     private final String STRUCTURE_USER = "u.`id`, u.`uuid`, u.`last_name`, u.`tickets` ";
     private final String STRUCTURE_INSTANCE = "i.`id`, i.`name`, i.`server_id`, " +
-            "i.`description`, i.`message`, i.`port`, i.`hostname`, i.`state`, i.`access`, " +
+            "i.`description`, i.`message`, i.`port`, i.`hostname`, i.`state`, i.`access`, i.`slots` " +
             "i.`game`, i.`user`, i.`creation`, i.`deletion` " + "," + STRUCTURE_GAME  + "," + STRUCTURE_USER;
     private final String STRUCTURE_LOGS = "l.`id`, l.`date`, l.`instance`, l.`action`, l.`user`, l.`game` ";
 
@@ -122,6 +122,9 @@ public class SQLStorage implements StorageImplementation {
             "WHERE id = ?";
     private final String UPDATE_INSTANCE_ADDRESS = "UPDATE {prefix}instances " +
             "SET hostname=?, port=? " +
+            "WHERE id = ?";
+    private final String UPDATE_INSTANCE_SLOTS = "UPDATE {prefix}instances " +
+            "SET slots=? " +
             "WHERE id = ?";
     private final String UPDATE_INSTANCE_CREATION = "UPDATE {prefix}instances " +
             "SET creation=? " +
@@ -573,6 +576,18 @@ public class SQLStorage implements StorageImplementation {
     }
 
     @Override
+    public void updateInstanceSlots(@NotNull Instance instance) throws StorageExecuteException {
+        try (Connection connection = DB.getConnection();
+             PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_SLOTS))) {
+            q.setInt(1, instance.getSlots());
+            q.setInt(2, instance.getId());
+            q.execute();
+        } catch (SQLException exception) {
+            throw new StorageExecuteException(exception, exception.getSQLState());
+        }
+    }
+
+    @Override
     public void updateInstanceCreation(@NotNull Instance instance) throws StorageExecuteException {
         try (Connection connection = DB.getConnection();
              PreparedStatement q = connection.prepareStatement(formatQuery(UPDATE_INSTANCE_CREATION))) {
@@ -818,6 +833,7 @@ public class SQLStorage implements StorageImplementation {
                 r.getInt("i.port"),
                 InstanceState.fromInteger(r.getInt("i.state")),
                 AccessStates.fromInteger(r.getInt("i.access")),
+                r.getInt("i.slots"),
                 resultSetToGame(r),
                 resultSetToUser(r),
                 creation,
