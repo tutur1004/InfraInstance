@@ -31,13 +31,15 @@ public interface MessagingImplementation {
      * Simple shortcut to get the server identifier
      */
     static @NotNull String getServerIdentifier() {
-        if (Main.getMessaging().isActivate()) {
+        try {
             if (Main.SERVER_TYPE.equals(ServerType.LOBBY)) {
                 return Main.LOBBY_PREFIX + SEPARATOR + Bukkit.getPort();
             } else if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
                 return Main.SERVER_NAME.toLowerCase(Locale.ROOT).replaceAll("-", ".");
             } else return "unknown";
-        } else return "none";
+        } catch (Exception ignored) {
+            return "none";
+        }
     }
 
     default boolean isActivate() {

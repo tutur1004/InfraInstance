@@ -39,7 +39,7 @@ public class SQLStorage implements StorageImplementation {
             "g.`enable`, g.`version`, g.`image`, g.`requirements`, g.`icon` ";
     private final String STRUCTURE_USER = "u.`id`, u.`uuid`, u.`last_name`, u.`tickets` ";
     private final String STRUCTURE_INSTANCE = "i.`id`, i.`name`, i.`server_id`, " +
-            "i.`description`, i.`message`, i.`port`, i.`hostname`, i.`state`, i.`access`, i.`slots` " +
+            "i.`description`, i.`message`, i.`port`, i.`hostname`, i.`state`, i.`access`, i.`slots`, " +
             "i.`game`, i.`user`, i.`creation`, i.`deletion` " + "," + STRUCTURE_GAME  + "," + STRUCTURE_USER;
     private final String STRUCTURE_LOGS = "l.`id`, l.`date`, l.`instance`, l.`action`, l.`user`, l.`game` ";
 
