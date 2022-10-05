@@ -21,24 +21,25 @@ import java.util.Arrays;
 import java.util.List;
 
 public class LobbyListHosts {
-    private static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("hostListGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new LobbyListHosts.HostListProvider())
-            .size(5, 9)
-            .title(ChatColor.DARK_AQUA + "Available hosts")
-            .closeable(true)
-            .parent(LobbyMainGui.INVENTORY)
-            .build();
+    private final SmartInventory INVENTORY;
 
     /**
      * Open a new wait list GUI
      */
-    public LobbyListHosts(Player player) {
+    public LobbyListHosts(Player player, SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("hostListGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new LobbyListHosts.HostListProvider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Available hosts")
+                .closeable(true)
+                .parent(parent)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class HostListProvider implements InventoryProvider, Gui.GuiPages {
+    private class HostListProvider implements InventoryProvider, Gui.GuiPages {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Default gui pages setup

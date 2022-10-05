@@ -22,24 +22,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LobbyCreateHost {
-    private static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("createHostGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new Provider())
-            .size(5, 9)
-            .title(ChatColor.DARK_AQUA + "Create a new Host - Select a game")
-            .closeable(true)
-            .parent(LobbyMainGui.INVENTORY)
-            .build();
+    private final SmartInventory INVENTORY;
 
     /**
      * Open a new Main host GUI
      */
-    public LobbyCreateHost(Player player) {
+    public LobbyCreateHost(Player player, SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("createHostGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Create a new Host - Select a game")
+                .closeable(true)
+                .parent(parent)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider, Gui.GuiPages {
+    private class Provider implements InventoryProvider, Gui.GuiPages {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Default gui pages setup

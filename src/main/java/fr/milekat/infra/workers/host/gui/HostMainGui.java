@@ -18,29 +18,47 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class HostMainGui {
-    public static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("mainGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new Provider())
-            .size(5, 9)
-            .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
-            .closeable(true)
-            .build();
+    public final SmartInventory INVENTORY;
 
     /**
      * Open a new Main host GUI
      */
-    public HostMainGui(Player player) {
+    public HostMainGui(@NotNull Player player) {
+        INVENTORY = SmartInventory.builder()
+                .id("mainGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
+                .closeable(true)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider {
+    /**
+     * Open a new Main host GUI
+     */
+    public HostMainGui(@NotNull Player player, @NotNull SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("mainGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
+                .closeable(true)
+                .parent(parent)
+                .build();
+        INVENTORY.open(player);
+    }
+
+    private class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Fill inventory of glass panes
@@ -59,9 +77,11 @@ public class HostMainGui {
             update(player, contents);
             //  Open WhiteList GUI
             contents.set(2, 1, ClickableItem.of(PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
-                    "Whitelisted players", getWhiteListLore()), e -> new HostWhiteList(player)));
+                    "Whitelisted players", getWhiteListLore()), e ->
+                    new HostWhiteList(player, INVENTORY)));
             //  Open WaitList GUI
-            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e -> new HostWaitList(player)));
+            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e ->
+                    new HostWaitList(player, INVENTORY)));
             //  Close GUI
             contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e -> INVENTORY.close(player)));
             //  Cancel host (With validation)

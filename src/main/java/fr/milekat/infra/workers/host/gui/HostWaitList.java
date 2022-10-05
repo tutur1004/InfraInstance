@@ -18,24 +18,25 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HostWaitList {
-    private static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("waitingGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new Provider())
-            .size(6, 9)
-            .title(ChatColor.DARK_AQUA + "Waiting list")
-            .closeable(true)
-            .parent(HostMainGui.INVENTORY)
-            .build();
+    private final SmartInventory INVENTORY;
 
     /**
      * Open a new wait list GUI
      */
-    public HostWaitList(Player player) {
+    public HostWaitList(Player player, SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("waitingGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(6, 9)
+                .title(ChatColor.DARK_AQUA + "Waiting list")
+                .closeable(true)
+                .parent(parent)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider {
+    private class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             contents.fillBorders(Gui.empty());

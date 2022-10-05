@@ -1,6 +1,5 @@
 package fr.milekat.infra.workers.utils;
 
-import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.AccessStates;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;

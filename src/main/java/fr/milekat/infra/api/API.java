@@ -8,6 +8,9 @@ import fr.milekat.infra.api.events.GameFinishedEvent;
 import fr.milekat.infra.api.events.GameStartEvent;
 import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
+import fr.milekat.infra.workers.host.gui.HostMainGui;
+import fr.milekat.infra.workers.lobby.gui.LobbyMainGui;
+import fr.minuskube.inv.SmartInventory;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -140,7 +143,7 @@ public class API {
      * @param uuid {@link UUID} of {@link Player}
      * @return ticket amount
      */
-    public static Integer getTickets(UUID uuid) throws StorageExecuteException {
+    public static Integer getTickets(@NotNull UUID uuid) throws StorageExecuteException {
         return STORAGE.getTicket(uuid);
     }
 
@@ -167,14 +170,14 @@ public class API {
     /**
      * Method to update an instance by name.
      */
-    public static Instance getInstance(String name) throws StorageExecuteException {
+    public static Instance getInstance(@NotNull String name) throws StorageExecuteException {
         return STORAGE.getInstance(name);
     }
 
     /**
      * Method to update an instance.
      */
-    public static void updateInstance(Instance instance) throws StorageExecuteException {
+    public static void updateInstance(@NotNull Instance instance) throws StorageExecuteException {
         STORAGE.updateInstance(instance);
     }
 
@@ -187,7 +190,54 @@ public class API {
      * @return {@link User} or null
      */
     @Nullable
-    public static User getUser(UUID uuid) throws StorageExecuteException {
+    public static User getUser(@NotNull UUID uuid) throws StorageExecuteException {
         return STORAGE.getUser(uuid);
+    }
+
+    /*
+        Gui
+     */
+    /**
+     * Open Main Host GUI.
+     * Ignored if not {@link ServerType#HOST}
+     */
+    public static void guiMainHost(@NotNull Player player) {
+        guiMainHost(player, null);
+    }
+
+    /**
+     * Open Main Host GUI.
+     * Ignored if not {@link ServerType#HOST}
+     */
+    public static void guiMainHost(@NotNull Player player, @Nullable SmartInventory inventory) {
+        if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
+            if (inventory == null) {
+                new HostMainGui(player);
+            } else {
+                new HostMainGui(player, inventory);
+            }
+        }
+    }
+
+    /**
+     * Open Main Host GUI.
+     * Ignored if not {@link ServerType#HOST}
+     */
+    public static void guiMainLobby(@NotNull Player player) {
+        guiMainLobby(player, null);
+    }
+
+    /**
+     * Open Main Host GUI.
+     * Ignored if not {@link ServerType#HOST}
+     */
+    public static void guiMainLobby(@NotNull Player player, @Nullable SmartInventory inventory) {
+        if (Main.SERVER_TYPE.equals(ServerType.LOBBY)) {
+            if (inventory == null) {
+                new LobbyMainGui(player);
+            } else {
+                new LobbyMainGui(player, inventory);
+            }
+        }
     }
 }

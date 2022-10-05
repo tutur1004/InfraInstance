@@ -24,24 +24,25 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HostWhiteList {
-    private static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("whitelistGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new Provider())
-            .size(6, 9)
-            .title(ChatColor.DARK_AQUA + "Whitelisted players")
-            .closeable(true)
-            .parent(HostMainGui.INVENTORY)
-            .build();
+    private final SmartInventory INVENTORY;
 
     /**
      * Open a new whitelist GUI
      */
-    public HostWhiteList(Player player) {
+    public HostWhiteList(Player player, SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("whitelistGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(6, 9)
+                .title(ChatColor.DARK_AQUA + "Whitelisted players")
+                .closeable(true)
+                .parent(parent)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider {
+    private class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             contents.fillBorders(Gui.empty());

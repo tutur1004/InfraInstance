@@ -13,29 +13,47 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class LobbyMainGui  {
-    public static final SmartInventory INVENTORY = SmartInventory.builder()
-            .id("mainGui")
-            .manager(Main.INVENTORY_MANAGER)
-            .provider(new Provider())
-            .size(5, 9)
-            .title(ChatColor.DARK_AQUA + "Host panel")
-            .closeable(true)
-            .build();
+    public final SmartInventory INVENTORY;
 
     /**
-     * Open a new Main host GUI
+     * Open a new Main lobby GUI
      */
-    public LobbyMainGui(Player player) {
+    public LobbyMainGui(@NotNull Player player) {
+        INVENTORY = SmartInventory.builder()
+                .id("mainGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Host panel")
+                .closeable(true)
+                .build();
         INVENTORY.open(player);
     }
 
-    private static class Provider implements InventoryProvider {
+    /**
+     * Open a new Main lobby GUI
+     */
+    public LobbyMainGui(@NotNull Player player, @NotNull SmartInventory parent) {
+        INVENTORY = SmartInventory.builder()
+                .id("mainGui")
+                .manager(Main.INVENTORY_MANAGER)
+                .provider(new Provider())
+                .size(5, 9)
+                .title(ChatColor.DARK_AQUA + "Host panel")
+                .closeable(true)
+                .parent(parent)
+                .build();
+        INVENTORY.open(player);
+    }
+
+    private class Provider implements InventoryProvider {
         @Override
         public void init(@NotNull Player player, @NotNull InventoryContents contents) {
             //  Fill inventory of glass panes
@@ -58,12 +76,14 @@ public class LobbyMainGui  {
             //  Open MyHosts GUI
             contents.set(2, 2, ClickableItem.of(PlayerHead.getPlayerSkull(player.getName(),
                     "My active hosts", Arrays.asList("Click to view", "All your games")),
-                    e -> new LobbyMyHosts(player)));
+                    e -> new LobbyMyHosts(player, INVENTORY)));
             //  Open CreateHost GUI
-            contents.set(2, 4, ClickableItem.of(getCreateHost(), e -> new LobbyCreateHost(player)));
+            contents.set(2, 4, ClickableItem.of(getCreateHost(), e ->
+                    new LobbyCreateHost(player, INVENTORY)));
             //  Open HostList GUI
             contents.set(2, 6, ClickableItem.of(PlayerHead.getTextureSkull(PlayerHead.Earth,
-                    "All accessible games", getHostListLore()), e -> new LobbyListHosts(player)));
+                    "All accessible games", getHostListLore()), e ->
+                    new LobbyListHosts(player, INVENTORY)));
             //  Close GUI
             contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e -> INVENTORY.close(player)));
         }

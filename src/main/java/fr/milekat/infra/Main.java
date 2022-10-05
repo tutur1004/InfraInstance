@@ -2,8 +2,8 @@ package fr.milekat.infra;
 
 import fr.milekat.infra.api.classes.Instance;
 import fr.milekat.infra.api.classes.ServerType;
-import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.Messaging;
+import fr.milekat.infra.messaging.MessagingImplementation;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 import fr.milekat.infra.messaging.sending.MessageToProxy;
