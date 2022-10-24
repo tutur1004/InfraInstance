@@ -240,4 +240,13 @@ public class API {
             }
         }
     }
+
+    /**
+     * Checks if the whitelist is enabled
+     * @return true if enabled
+     */
+    public static boolean isWhitelistEnabled() {
+        return Main.HOST_INSTANCE.getAccess() == AccessStates.PRIVATE;
+    }
+    
 }
