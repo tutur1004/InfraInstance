@@ -13,7 +13,7 @@ CREATE TABLE `{prefix}games` (
 `version` varchar(20) NOT NULL COMMENT 'Game version',
 `image` varchar(255) NOT NULL COMMENT 'Full image repo of this game',
 `requirements` smallint(5) UNSIGNED NOT NULL DEFAULT 2048 COMMENT 'amount of needed RAM to run this game (MB)',
-`icon` varchar(64) NOT NULL DEFAULT 'GRASS' COMMENT 'Bukkit material id of item, or a base64 texture (Format "t:<b64>")'
+`icon` longtext NOT NULL DEFAULT 'GRASS' COMMENT 'Bukkit material id of item, or a base64 texture (Format "t:<b64>")'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='List of all created games';
 CREATE INDEX `{prefix}games_id` ON `{prefix}games` (`name`);
 
@@ -23,7 +23,7 @@ CREATE TABLE `{prefix}instances` (
 `server_id` varchar(64) DEFAULT NULL COMMENT 'Id of instance server',
 `description` varchar(256) NOT NULL COMMENT 'Instance description',
 `message` longtext NULL COMMENT 'Custom instance message',
-`hostname` VARCHAR(64) NOT NULL DEFAULT 'localhost' COMMENT 'Hostname of your instance',
+`hostname` VARCHAR(64) NOT NULL DEFAULT '0.0.0.0' COMMENT 'Hostname of your instance',
 `port` smallint(5) NOT NULL COMMENT 'Instance port',
 `state` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Game state\n0: Creating\n1: Ready\n2: In progress\n3: Ending\n4: Terminated',
 `access` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Access state\n0: PRIVATE\n1: REQUEST_TO_JOIN\n2: OPEN',

@@ -11,13 +11,12 @@ import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class LobbyMyHosts {
     private final SmartInventory INVENTORY;
@@ -31,7 +30,7 @@ public class LobbyMyHosts {
                 .manager(Main.INVENTORY_MANAGER)
                 .provider(new Provider())
                 .size(5, 9)
-                .title(ChatColor.DARK_AQUA + "My Hosts")
+                .title(Main.getConfigs().getMessage("messages.lobby.gui.my-host.tittle"))
                 .closeable(true)
                 .parent(parent)
                 .build();
@@ -63,12 +62,13 @@ public class LobbyMyHosts {
         public void updatePages(@NotNull InventoryContents contents, Player player) {
             Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), ()-> {
                 try {
-                    List<ClickableItem> myHosts = new ArrayList<>();
+                    Map<Integer, ClickableItem> myHosts = new TreeMap<>();
                     Main.getStorage().getActiveInstancesCached()
                             .stream()
                             .filter(instance -> instance.getUser().getUuid().equals(player.getUniqueId()))
                             .filter(instance -> instance.getState().equals(InstanceState.READY))
-                            .forEach(instance -> myHosts.add(ClickableItem.of(
+                            .forEach(instance -> myHosts.put(instance.getId(),
+                                    ClickableItem.of(
                                     Gui.getIcon(instance.getGame().getIcon(),
                                             instance.getName(),
                                             Arrays.asList(instance.getDescription(), instance.getMessage())),
@@ -77,11 +77,12 @@ public class LobbyMyHosts {
                                             JoinHandler.serverClick(instance, event.getWhoClicked().getUniqueId(),
                                                     event.getWhoClicked().getName());
                                         } catch (MessagingSendException exception) {
-                                            event.getWhoClicked().sendMessage("§cError, please try again.");
+                                            event.getWhoClicked().sendMessage(Main.getConfigs().getMessage(
+                                                    "messages.lobby.gui.my-host.messages.join-error"));
                                         }
                                     }))
                             );
-                    contents.pagination().setItems(myHosts.toArray(new ClickableItem[0]));
+                    contents.pagination().setItems(myHosts.values().toArray(new ClickableItem[0]));
                     Gui.fillPage(contents, 1,1, 3,7);
                 } catch (StorageExecuteException exception) {
                     if (Main.DEBUG) {

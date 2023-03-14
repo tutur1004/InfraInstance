@@ -13,7 +13,16 @@ import fr.milekat.infra.workers.lobby.commands.OpenLobbyMainGui;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 public class WorkerManager {
+    public static final long CREATE_DELAY = TimeUnit.MILLISECONDS.convert(30L, TimeUnit.SECONDS);
+    public static final Map<UUID, Date> CREATE_COOL_DOWN = new HashMap<>();
+
     public WorkerManager(JavaPlugin plugin) {
         if (Main.SERVER_TYPE.equals(ServerType.HOST)) {
             try {

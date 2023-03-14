@@ -30,21 +30,24 @@ public class MessageFromProxy {
             case INVITE_SENT: {
                 if (message.size()==3) {
                     String invited = message.get(2);
-                    Main.HOST_PLAYER.sendMessage("Invitation to " + invited + " sent !");
+                    Main.HOST_PLAYER.sendMessage(Main.getConfigs().getMessage("messages.invitation.sent")
+                            .replaceAll("<INVITED>", invited));
                 }
                 break;
             }
             case INVITE_RESULT_NOT_FOUND: {
                 if (message.size()==3) {
                     String invited = message.get(2);
-                    Main.HOST_PLAYER.sendMessage("§6Player '" + invited + "' not found in lobby.");
+                    Main.HOST_PLAYER.sendMessage(Main.getConfigs().getMessage("messages.invitation.not_found")
+                            .replaceAll("<INVITED>", invited));
                 }
                 break;
             }
             case INVITE_RESULT_DENY: {
                 if (message.size()==3) {
                     String invited = message.get(2);
-                    Main.HOST_PLAYER.sendMessage("§6Player '" + invited + "' has denied your request.");
+                    Main.HOST_PLAYER.sendMessage(Main.getConfigs().getMessage("messages.invitation.deny")
+                            .replaceAll("<INVITED>", invited));
                 }
                 break;
             }

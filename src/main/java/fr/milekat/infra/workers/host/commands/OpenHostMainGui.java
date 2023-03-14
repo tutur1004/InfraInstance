@@ -24,7 +24,7 @@ public class OpenHostMainGui implements CommandExecutor {
             if (player.getUniqueId().equals(Main.HOST_PLAYER.getUniqueId())) {
                 new HostMainGui(player);
             } else {
-                sender.sendMessage("§cOnly host can open this GUI.");
+                sender.sendMessage(Main.getConfigs().getMessage("messages.host.commands.only_host"));
             }
         }
         return true;

@@ -14,11 +14,12 @@ import fr.minuskube.inv.content.InventoryProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class LobbyListHosts {
     private final SmartInventory INVENTORY;
@@ -30,7 +31,7 @@ public class LobbyListHosts {
         INVENTORY = SmartInventory.builder()
                 .id("hostListGui")
                 .manager(Main.INVENTORY_MANAGER)
-                .provider(new LobbyListHosts.HostListProvider())
+                .provider(new HostListProvider())
                 .size(5, 9)
                 .title(ChatColor.DARK_AQUA + "Available hosts")
                 .closeable(true)
@@ -53,21 +54,23 @@ public class LobbyListHosts {
             updatePages(contents, player);
         }
 
+        @Contract(value = " -> new", pure = true)
         @Override
-        public SmartInventory getInventory() {
+        public @NotNull SmartInventory getInventory() {
             return INVENTORY;
         }
 
         @Override
-        public void updatePages(@NotNull InventoryContents contents, Player ignored) {
+        public void updatePages(@NotNull InventoryContents contents, Player player) {
             Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), ()-> {
                 try {
-                    List<ClickableItem> availableHosts = new ArrayList<>();
+                    Map<Integer, ClickableItem> availableHosts = new TreeMap<>();
                     Main.getStorage().getActiveInstancesCached()
                             .stream()
                             .filter(instance -> !instance.getAccess().equals(AccessStates.PRIVATE))
                             .filter(instance -> instance.getState().equals(InstanceState.READY))
-                            .forEach(instance -> availableHosts.add(ClickableItem.of(
+                            .forEach(instance -> availableHosts.put(instance.getId(),
+                                    ClickableItem.of(
                                     Gui.getIcon(instance.getAccess(),
                                             instance.getName(),
                                             Arrays.asList(instance.getDescription(), instance.getMessage())),
@@ -76,11 +79,13 @@ public class LobbyListHosts {
                                             JoinHandler.serverClick(instance, event.getWhoClicked().getUniqueId(),
                                                     event.getWhoClicked().getName());
                                         } catch (MessagingSendException exception) {
-                                            event.getWhoClicked().sendMessage("§cError, please try again.");
+                                            event.getWhoClicked().sendMessage(Main.getConfigs()
+                                                    .getMessage("messages.general.error",
+                                                            "&cServer error, please contact staff."));
                                         }
                                     }))
                             );
-                    contents.pagination().setItems(availableHosts.toArray(new ClickableItem[0]));
+                    contents.pagination().setItems(availableHosts.values().toArray(new ClickableItem[0]));
                     Gui.fillPage(contents, 1,1, 3,7);
                 } catch (StorageExecuteException exception) {
                     if (Main.DEBUG) {

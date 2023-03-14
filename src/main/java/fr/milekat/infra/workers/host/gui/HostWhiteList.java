@@ -12,7 +12,6 @@ import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import fr.minuskube.inv.content.Pagination;
 import net.wesjd.anvilgui.AnvilGUI;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,7 +19,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HostWhiteList {
@@ -35,7 +33,7 @@ public class HostWhiteList {
                 .manager(Main.INVENTORY_MANAGER)
                 .provider(new Provider())
                 .size(6, 9)
-                .title(ChatColor.DARK_AQUA + "Whitelisted players")
+                .title(Main.getConfigs().getMessage("messages.host.gui.white-list.tittle"))
                 .closeable(true)
                 .parent(parent)
                 .build();
@@ -54,7 +52,8 @@ public class HostWhiteList {
             contents.set(0, 4, ClickableItem.of(getAnvilButton(), e -> openAnvilGui(player)));
             if (!pagination.isFirst()) {
                 contents.set(5, 0, ClickableItem.of(
-                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Left, "Previous"),
+                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Left,
+                                Main.getConfigs().getMessage("messages.general.gui.previous")),
                         e -> INVENTORY.open(player, pagination.previous().getPage())));
             }
             //  Close GUI
@@ -62,7 +61,8 @@ public class HostWhiteList {
                     INVENTORY.getParent().ifPresent(smartInventory -> smartInventory.open(player))));
             if (!pagination.isLast()) {
                 contents.set(5, 8, ClickableItem.of(
-                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Right, "Next"),
+                        PlayerHead.getTextureSkull(PlayerHead.Arrow_Right,
+                                Main.getConfigs().getMessage("messages.general.gui.next")),
                         e -> INVENTORY.open(player, pagination.next().getPage())));
             }
         }
@@ -75,7 +75,8 @@ public class HostWhiteList {
         private void updatePages(@NotNull Pagination pagination) {
             List<ClickableItem> waiters = new ArrayList<>();
             Main.WHITE_LIST.forEach((uuid, username) -> waiters.add(ClickableItem.of(PlayerHead.getPlayerSkull(
-                            username, username, Arrays.asList("Left click", "Add Whitelist", "Right click", "Remove")),
+                            username, username,
+                            Main.getConfigs().getMessages("messages.host.gui.white-list.actions")),
                     e -> {
                         if (e.isLeftClick()) {
                             PlayersList.addPlayerToWhiteList(uuid, username);
@@ -102,7 +103,7 @@ public class HostWhiteList {
                         try {
                             MessageToProxy.notifyInvitePlayer(text);
                         } catch (MessagingSendException exception) {
-                            guiPlayer.sendMessage("§cServer error, please contact the staff.");
+                            guiPlayer.sendMessage(Main.getConfigs().getMessage("messages.general.error"));
                             exception.printStackTrace();
                         }
                         return AnvilGUI.Response.close();

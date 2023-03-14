@@ -43,7 +43,7 @@ dependencies {
     compileOnly group: 'com.mojang', name: 'authlib', version: '1.5.26'
 
     //  Utils
-    implementation group: 'com.github.tutur1004', name: 'MilekatUtils', version: '834fa1d4da'
+    implementation group: 'com.github.tutur1004', name: 'MilekatUtils', version: '71f2954c48'
     implementation group: 'net.wesjd', name: 'anvilgui', version: '1.5.3-SNAPSHOT'
     implementation group: 'fr.minuskube.inv', name: 'smart-invs', version: '1.2.7'
 

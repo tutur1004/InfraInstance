@@ -10,7 +10,6 @@ import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -18,7 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +34,8 @@ public class HostMainGui {
                 .manager(Main.INVENTORY_MANAGER)
                 .provider(new Provider())
                 .size(5, 9)
-                .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
+                .title(Main.getConfigs().getMessage("messages.host.gui.main.tittle")
+                        .replaceAll("<SRV_NAME>", Main.SERVER_NAME))
                 .closeable(true)
                 .build();
         INVENTORY.open(player);
@@ -51,7 +50,8 @@ public class HostMainGui {
                 .manager(Main.INVENTORY_MANAGER)
                 .provider(new Provider())
                 .size(5, 9)
-                .title(ChatColor.DARK_AQUA + "Host: " + Main.SERVER_NAME)
+                .title(Main.getConfigs().getMessage("messages.host.gui.main.tittle")
+                        .replaceAll("<SRV_NAME>", Main.SERVER_NAME))
                 .closeable(true)
                 .parent(parent)
                 .build();
@@ -76,16 +76,23 @@ public class HostMainGui {
             contents.set(4,7, empty);
             update(player, contents);
             //  Open WhiteList GUI
-            contents.set(2, 1, ClickableItem.of(PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
-                    "Whitelisted players", getWhiteListLore()), e ->
-                    new HostWhiteList(player, INVENTORY)));
+            contents.set(2, 1, ClickableItem.of(getWhiteListButton(),
+                    e -> new HostWhiteList(player, INVENTORY)));
             //  Open WaitList GUI
-            contents.set(2, 7, ClickableItem.of(getWaitListButton(), e ->
-                    new HostWaitList(player, INVENTORY)));
+            contents.set(2, 7, ClickableItem.of(getWaitListButton(),
+                    e -> new HostWaitList(player, INVENTORY)));
             //  Close GUI
-            contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(), e -> INVENTORY.close(player)));
+            contents.set(4, 4, ClickableItem.of(Gui.getCloseButton(),
+                    e -> INVENTORY.close(player)));
             //  Cancel host (With validation)
-            contents.set(4, 8, ClickableItem.of(getCancelButton(), e -> new HostCancelConfirm(player)));
+            contents.set(4, 8, ClickableItem.of(getCancelButton(),
+                    e -> new HostCancelConfirm(player)));
+        }
+
+        private @NotNull ItemStack getWhiteListButton() {
+            return PlayerHead.getTextureSkull(PlayerHead.Simplistic_Steve,
+                    Main.getConfigs().getMessage("messages.host.gui.main.buttons.whitelist.tittle"),
+                    Main.getConfigs().getMessages("messages.host.gui.main.buttons.whitelist.lore"));
         }
 
         @Override
@@ -108,12 +115,8 @@ public class HostMainGui {
         private @NotNull ItemStack getRedButton() {
             ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 14);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§cPRIVATE HOST");
-            List<String> waitListLore = new ArrayList<>();
-            waitListLore.add(ChatColor.GOLD + "Click to turn");
-            waitListLore.add(ChatColor.GOLD + "this host in");
-            waitListLore.add(ChatColor.GOLD + "private mode");
-            meta.setLore(waitListLore);
+            meta.setDisplayName(Main.getConfigs().getMessage("messages.host.gui.main.buttons.private.tittle"));
+            meta.setLore(Main.getConfigs().getMessages("messages.host.gui.main.buttons.private.lore"));
             item.setItemMeta(meta);
             if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.PRIVATE)) {
                 Glowing.addGlow(item);
@@ -127,12 +130,8 @@ public class HostMainGui {
         private @NotNull ItemStack getGoldButton() {
             ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 4);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§cWAIT LIST");
-            List<String> waitListLore = new ArrayList<>();
-            waitListLore.add(ChatColor.GOLD + "Click to turn");
-            waitListLore.add(ChatColor.GOLD + "this host in");
-            waitListLore.add(ChatColor.GOLD + "waitList mode");
-            meta.setLore(waitListLore);
+            meta.setDisplayName(Main.getConfigs().getMessage("messages.host.gui.main.buttons.wait.tittle"));
+            meta.setLore(Main.getConfigs().getMessages("messages.host.gui.main.buttons.wait.lore"));
             item.setItemMeta(meta);
             if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.REQUEST_TO_JOIN)) {
                 Glowing.addGlow(item);
@@ -146,12 +145,8 @@ public class HostMainGui {
         private @NotNull ItemStack getGreenButton() {
             ItemStack item = new ItemStack(Material.STAINED_CLAY, 1 , (short) 5);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§cOPEN");
-            List<String> waitListLore = new ArrayList<>();
-            waitListLore.add(ChatColor.GOLD + "Click to turn");
-            waitListLore.add(ChatColor.GOLD + "this host in");
-            waitListLore.add(ChatColor.GOLD + "open mode");
-            meta.setLore(waitListLore);
+            meta.setDisplayName(Main.getConfigs().getMessage("messages.host.gui.main.buttons.open.tittle"));
+            meta.setLore(Main.getConfigs().getMessages("messages.host.gui.main.buttons.open.lore"));
             item.setItemMeta(meta);
             if (Main.HOST_INSTANCE.getAccess().equals(AccessStates.OPEN)) {
                 Glowing.addGlow(item);
@@ -185,20 +180,11 @@ public class HostMainGui {
             return hostInfos;
         }
 
-        private @NotNull List<String> getWhiteListLore() {
-            List<String> whiteListLore = new ArrayList<>();
-            whiteListLore.add("Edit Whitelist");
-            whiteListLore.add("Or kick players");
-            return whiteListLore;
-        }
-
         private @NotNull ItemStack getWaitListButton() {
             ItemStack waitListButton = new ItemStack(Material.DARK_OAK_DOOR_ITEM);
             ItemMeta meta = waitListButton.getItemMeta();
-            meta.setDisplayName("Waiting players");
-            List<String> waitListLore = new ArrayList<>();
-            waitListLore.add("Waiting players");
-            meta.setLore(waitListLore);
+            meta.setDisplayName(Main.getConfigs().getMessage("messages.host.gui.main.buttons.wait-list.tittle"));
+            meta.setLore(Main.getConfigs().getMessages("messages.host.gui.main.buttons.wait-list.lore"));
             waitListButton.setItemMeta(meta);
             return waitListButton;
         }
@@ -209,12 +195,8 @@ public class HostMainGui {
         private @NotNull ItemStack getCancelButton() {
             ItemStack cancelButton = new ItemStack(Material.BARRIER);
             ItemMeta meta = cancelButton.getItemMeta();
-            meta.setDisplayName("§4Cancel this host");
-            List<String> waitListLore = new ArrayList<>();
-            waitListLore.add("§cWarning this will");
-            waitListLore.add("§cRemove this server");
-            waitListLore.add("§cTicket will be refund");
-            meta.setLore(waitListLore);
+            meta.setDisplayName(Main.getConfigs().getMessage("messages.host.gui.main.buttons.cancel.tittle"));
+            meta.setLore(Main.getConfigs().getMessages("messages.host.gui.main.buttons.cancel.lore"));
             cancelButton.setItemMeta(meta);
             return cancelButton;
         }

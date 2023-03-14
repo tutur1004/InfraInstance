@@ -23,10 +23,10 @@ public class ReceiveRabbitMessage {
 
     public ReceiveRabbitMessage() {
         ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(Main.getFileConfig().getString("messaging.rabbit-mq.hostname"));
-        connectionFactory.setPort(Main.getFileConfig().getInt("messaging.rabbit-mq.port"));
-        connectionFactory.setUsername(Main.getFileConfig().getString("messaging.rabbit-mq.username"));
-        connectionFactory.setPassword(Main.getFileConfig().getString("messaging.rabbit-mq.password"));
+        connectionFactory.setHost(Main.getConfigs().getString("messaging.rabbit-mq.hostname"));
+        connectionFactory.setPort(Main.getConfigs().getInt("messaging.rabbit-mq.port"));
+        connectionFactory.setUsername(Main.getConfigs().getString("messaging.rabbit-mq.username"));
+        connectionFactory.setPassword(Main.getConfigs().getString("messaging.rabbit-mq.password"));
         this.factory = connectionFactory;
     }
 
@@ -73,7 +73,7 @@ public class ReceiveRabbitMessage {
                     } catch (Exception exception) {
                         if (Main.DEBUG) {
                             Main.getOwnLogger().warning("Error while trying to consume Rabbit message !");
-                            Main.getOwnLogger().warning("Message: [" + strRaw + "]");
+                            Main.getOwnLogger().warning("Message: '" + strRaw + "'");
                             exception.printStackTrace();
                         }
                     }

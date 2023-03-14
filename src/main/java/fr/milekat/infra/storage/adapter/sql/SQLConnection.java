@@ -5,13 +5,13 @@ import fr.milekat.infra.storage.adapter.sql.hikari.MariaDBPool;
 import fr.milekat.infra.storage.adapter.sql.hikari.MySQLPool;
 import fr.milekat.infra.storage.adapter.sql.hikari.PostgresPool;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
-import org.bukkit.configuration.file.FileConfiguration;
+import fr.milekat.utils.Configs;
 import org.jetbrains.annotations.NotNull;
 
 public class SQLConnection {
     private final SQLDataBaseConnection sqlDataBaseConnection;
 
-    public SQLConnection(@NotNull FileConfiguration config) throws StorageLoaderException {
+    public SQLConnection(@NotNull Configs config) throws StorageLoaderException {
         HikariPool hikariPool;
         switch (config.getString("storage.type").toLowerCase()) {
             case "mysql": {

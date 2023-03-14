@@ -6,7 +6,7 @@ import fr.milekat.infra.storage.Storage;
 import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
-import org.bukkit.configuration.file.FileConfiguration;
+import fr.milekat.utils.Configs;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ public class SQLStorage implements StorageImplementation {
     private final String SCHEMA_FILE = "infra_schema.sql";
     private final SQLDataBaseConnection DB;
     private final String DatabaseName;
-    private final String PREFIX = Main.getFileConfig().getString("storage.prefix");
+    private final String PREFIX = Main.getConfigs().getString("storage.prefix");
     private final List<String> TABLES = Arrays.asList(PREFIX + "games", PREFIX + "instances", PREFIX + "logs",
             PREFIX + "users", PREFIX + "profiles", PREFIX + "properties", PREFIX + "game_strategies");
 
@@ -139,7 +139,7 @@ public class SQLStorage implements StorageImplementation {
             "(uuid, last_name) " +
             "VALUES (?,?) ON DUPLICATE KEY UPDATE last_name = ?;";
 
-    public SQLStorage(@NotNull FileConfiguration config) throws StorageLoaderException {
+    public SQLStorage(@NotNull Configs config) throws StorageLoaderException {
         DatabaseName = config.getString("storage.sql.database");
         DB = new SQLConnection(config).getSqlDataBaseConnection();
         try {
@@ -299,7 +299,7 @@ public class SQLStorage implements StorageImplementation {
             while (q.getResultSet().next()) {
                 games.add(resultSetToGame(q.getResultSet()));
             }
-            games.forEach(game -> Storage.GAMES_CACHE.put(game, new Date()));
+            games.forEach(game -> Storage.GAMES_CACHE = addCache(Storage.GAMES_CACHE, game));
             return games;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -332,7 +332,7 @@ public class SQLStorage implements StorageImplementation {
             q.execute();
             if (q.getResultSet().next()) {
                 Game game = resultSetToGame(q.getResultSet());
-                Storage.GAMES_CACHE.put(game, new Date());
+                Storage.GAMES_CACHE = addCache(Storage.GAMES_CACHE, game);
                 return game;
             } else return null;
         } catch (SQLException exception) {
@@ -353,7 +353,7 @@ public class SQLStorage implements StorageImplementation {
             q.execute();
             if (q.getResultSet().next()) {
                 Game game = resultSetToGame(q.getResultSet());
-                Storage.GAMES_CACHE.put(game, new Date());
+                Storage.GAMES_CACHE = addCache(Storage.GAMES_CACHE, game);
                 return game;
             } else return null;
         } catch (SQLException exception) {
@@ -444,7 +444,7 @@ public class SQLStorage implements StorageImplementation {
             while (q.getResultSet().next()) {
                 instances.add(resultSetToInstance(q.getResultSet()));
             }
-            instances.forEach(instance -> Storage.INSTANCES_CACHE.put(instance, new Date()));
+            instances.forEach(instance -> Storage.INSTANCES_CACHE = addCache(Storage.INSTANCES_CACHE, instance));
             return instances;
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
@@ -668,7 +668,7 @@ public class SQLStorage implements StorageImplementation {
             q.execute();
             if (q.getResultSet().next()) {
                 User user = resultSetToUser(q.getResultSet());
-                Storage.USERS_CACHE.put(user, new Date());
+                Storage.USERS_CACHE = addCache(Storage.USERS_CACHE, user);
                 return user;
             } else return null;
         } catch (SQLException exception) {
@@ -689,7 +689,7 @@ public class SQLStorage implements StorageImplementation {
             q.execute();
             if (q.getResultSet().next()) {
                 User user = resultSetToUser(q.getResultSet());
-                Storage.USERS_CACHE.put(user, new Date());
+                Storage.USERS_CACHE = addCache(Storage.USERS_CACHE, user);
                 return user;
             } else return null;
         } catch (SQLException exception) {
@@ -806,6 +806,46 @@ public class SQLStorage implements StorageImplementation {
         } catch (SQLException exception) {
             throw new StorageExecuteException(exception, exception.getSQLState());
         }
+    }
+
+    private @NotNull Map<Game, Date> addCache(@NotNull Map<Game, Date> cache, @NotNull Game game) {
+        List<Game> instances = new ArrayList<>(cache.keySet());
+        if (instances.stream().anyMatch(game1 -> game1.getId().equals(game.getId()))) {
+            Map<Game, Date> tempCache = new HashMap<>(cache);
+            cache.keySet().stream().filter(game1 -> game1.getId().equals(game.getId())).forEach(tempCache::remove);
+            tempCache.put(game, new Date());
+            cache = new HashMap<>(tempCache);
+        } else {
+            cache.put(game, new Date());
+        }
+        return cache;
+    }
+
+    private @NotNull Map<Instance, Date> addCache(@NotNull Map<Instance, Date> cache, @NotNull Instance instance) {
+        List<Instance> instances = new ArrayList<>(cache.keySet());
+        if (instances.stream().anyMatch(instance1 -> instance1.getId().equals(instance.getId()))) {
+            Map<Instance, Date> tempCache = new HashMap<>(cache);
+            cache.keySet().stream().filter(instance1 -> instance1.getId().equals(instance.getId()))
+                    .forEach(tempCache::remove);
+            tempCache.put(instance, new Date());
+            cache = new HashMap<>(tempCache);
+        } else {
+            cache.put(instance, new Date());
+        }
+        return cache;
+    }
+
+    private @NotNull Map<User, Date> addCache(@NotNull Map<User, Date> cache, @NotNull User user) {
+        List<User> users = new ArrayList<>(cache.keySet());
+        if (users.stream().anyMatch(user1 -> user1.getUuid().equals(user.getUuid()))) {
+            Map<User, Date> tempCache = new HashMap<>(cache);
+            cache.keySet().stream().filter(user1 -> user1.getUuid().equals(user.getUuid())).forEach(tempCache::remove);
+            tempCache.put(user, new Date());
+            cache = new HashMap<>(tempCache);
+        } else {
+            cache.put(user, new Date());
+        }
+        return cache;
     }
 
     /*

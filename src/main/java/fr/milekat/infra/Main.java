@@ -11,11 +11,13 @@ import fr.milekat.infra.storage.Storage;
 import fr.milekat.infra.storage.StorageImplementation;
 import fr.milekat.infra.storage.exeptions.StorageLoaderException;
 import fr.milekat.infra.workers.WorkerManager;
+import fr.milekat.utils.Configs;
 import fr.minuskube.inv.InventoryManager;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -42,9 +44,9 @@ public class Main extends JavaPlugin {
 
     private static JavaPlugin plugin;
     public static InventoryManager INVENTORY_MANAGER;
-    private static FileConfiguration configFile;
     public static ServerType SERVER_TYPE;
     public static Boolean DEBUG = false;
+    private static Configs config;
     private static Storage LOADED_STORAGE;
     private static Messaging LOADED_MESSAGING;
 
@@ -53,14 +55,21 @@ public class Main extends JavaPlugin {
         plugin = this;
         INVENTORY_MANAGER = new InventoryManager(plugin);
         INVENTORY_MANAGER.init();
-        configFile = this.getConfig();
-        DEBUG = configFile.getBoolean("debug");
-        SERVER_TYPE = ServerType.valueOf(configFile.getString("server-type").toUpperCase(Locale.ROOT));
+        try {
+            File file = File.createTempFile(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            this.getConfig().save(file);
+            config = new Configs(file);
+        } catch (IOException exception) {
+            getOwnLogger().warning("Error while trying to load config");
+            exception.printStackTrace();
+        }
+        DEBUG = config.getBoolean("debug");
+        SERVER_TYPE = ServerType.valueOf(getConfigs().getString("server-type").toUpperCase(Locale.ROOT));
         if (DEBUG) getOwnLogger().info("Debug enable");
         getOwnLogger().info("Server type: " + SERVER_TYPE.name());
         //  Load storage
         try {
-            LOADED_STORAGE = new Storage(configFile);
+            LOADED_STORAGE = new Storage(config);
             if (DEBUG) {
                 getOwnLogger().info("Storage enable, API is now available");
             }
@@ -75,7 +84,7 @@ public class Main extends JavaPlugin {
         }
         //  Load messaging (Optional since this plugin can be used only as an API)
         try {
-            LOADED_MESSAGING = new Messaging(configFile);
+            LOADED_MESSAGING = new Messaging(config);
         } catch (MessagingLoaderException exception) {
             getOwnLogger().warning("Messaging load failed, disabling plugin..");
             getOwnLogger().warning("If you only need the API, set messaging.type to 'none'.");
@@ -91,7 +100,7 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (Main.getFileConfig().getBoolean("auto-terminate")) {
+        if (Boolean.TRUE.equals(Main.getConfigs().getBoolean("auto-terminate"))) {
             try {
                 MessageToProxy.notifyGameFinish();
             } catch (MessagingSendException exception) {
@@ -137,8 +146,8 @@ public class Main extends JavaPlugin {
      * Get config file
      * @return Config file
      */
-    public static FileConfiguration getFileConfig() {
-        return configFile;
+    public static Configs getConfigs() {
+        return config;
     }
 
     /**

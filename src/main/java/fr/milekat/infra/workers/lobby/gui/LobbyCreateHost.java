@@ -6,19 +6,17 @@ import fr.milekat.infra.api.classes.User;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
 import fr.milekat.infra.messaging.sending.MessageToProxy;
 import fr.milekat.infra.storage.exeptions.StorageExecuteException;
+import fr.milekat.infra.workers.WorkerManager;
 import fr.milekat.infra.workers.utils.Gui;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LobbyCreateHost {
@@ -33,7 +31,7 @@ public class LobbyCreateHost {
                 .manager(Main.INVENTORY_MANAGER)
                 .provider(new Provider())
                 .size(5, 9)
-                .title(ChatColor.DARK_AQUA + "Create a new Host - Select a game")
+                .title(Main.getConfigs().getMessage("messages.lobby.gui.host-create.tittle"))
                 .closeable(true)
                 .parent(parent)
                 .build();
@@ -68,27 +66,32 @@ public class LobbyCreateHost {
                             .filter(Game::isEnable)
                             .sorted(Comparator.comparingInt(Game::getId))
                             .collect(Collectors.toList());
-                    List<ClickableItem> availableGames = new ArrayList<>();
+                    Map<Integer, ClickableItem> availableGames = new TreeMap<>();
                     games.forEach(game ->
-                            availableGames.add(ClickableItem.of(
+                            availableGames.put(game.getId(),
+                                    ClickableItem.of(
                                     Gui.getIcon(game.getIcon(), game.getName(), game.getDescriptionSplit()),
                                     event -> {
                                         Player p = (Player) event.getWhoClicked();
                                         try {
                                             User user = Main.getStorage().getUserCache(p.getUniqueId());
                                             if (user!=null && user.getTickets() > 0) {
-                                                p.sendMessage("§aHost request received, trying to create host...");
+                                                p.sendMessage(Main.getConfigs().getMessage(
+                                                        "messages.lobby.gui.host-create.messages.creation"));
+                                                WorkerManager.CREATE_COOL_DOWN.put(player.getUniqueId(), new Date());
                                                 MessageToProxy.notifyCreateHost(p.getUniqueId(), game.getId());
                                             } else {
-                                                p.sendMessage("§cNot enough tickets !");
+                                                p.sendMessage(Main.getConfigs().getMessage(
+                                                        "messages.lobby.gui.host-create.messages.no-ticket"));
                                             }
                                             INVENTORY.getParent().ifPresent(smartInventory ->
                                                     smartInventory.open((Player) event.getWhoClicked()));
                                         } catch (StorageExecuteException | MessagingSendException exception) {
-                                            p.sendMessage("§cError, please try again.");
+                                            p.sendMessage(Main.getConfigs().getMessage(
+                                                    "messages.lobby.gui.host-create.messages.creation-error"));
                                         }
                                     })));
-                    contents.pagination().setItems(availableGames.toArray(new ClickableItem[0]));
+                    contents.pagination().setItems(availableGames.values().toArray(new ClickableItem[0]));
                     Gui.fillPage(contents, 1,1, 3,7);
                     Gui.pagesButtons(player, contents, this);
                 } catch (StorageExecuteException exception) {

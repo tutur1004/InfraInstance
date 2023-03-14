@@ -37,3 +37,104 @@ messaging:
 server-type: lobby
 # Terminate on server stop (Only needed for server-type: host)
 auto-terminate: false
+# Messages
+messages:
+  general:
+    error: "&cServer error, please contact staff."
+    gui:
+      closeButton: ""
+      previous: "Previous"
+      next: "Next"
+  host:
+    commands:
+      only_host: "&cOnly host can open this GUI."
+    gui:
+      main:
+        tittle: "&3Host: <SRV_NAME>"
+        buttons:
+          private:
+            tittle: "&cPRIVATE HOST"
+            lore:
+              - "&6Click to turn"
+              - "&6this host in"
+              - "&6private mode"
+          wait:
+            tittle: "&6WAIT LIST"
+            lore:
+              - "&6Click to turn"
+              - "&6this host in"
+              - "&6waitList mode"
+          open:
+            tittle: "&2OPEN"
+            lore:
+              - "&6Click to turn"
+              - "&6this host in"
+              - "&6open mode"
+          whitelist:
+            tittle: "Whitelisted players"
+            lore:
+              - ""
+          wait-list:
+            tittle: "Waiting players"
+            lore:
+              - "&6Waiting players"
+          cancel:
+            tittle: "&4Cancel this host"
+            lore:
+              - "&cWarning this will"
+              - "&cRemove this server"
+              - "&cTicket will be refund"
+      wait-list:
+        tittle: "&3Waiting list"
+        actions:
+          - "Left click"
+          - "Add Whitelist"
+          - "Right click"
+          - "Remove"
+      white-list:
+        tittle: "&3Whitelisted players"
+        actions:
+          - "Left click"
+          - "Add Whitelist"
+          - "Right click"
+          - "Remove"
+  lobby:
+    gui:
+      main:
+        tittle: "&3Host panel"
+        messages:
+          cool-down: "&cWait <time-reaming> more seconds."
+        buttons:
+          my-host:
+            tittle: "&3My active hosts"
+            lore:
+              - "&6Click to turn"
+              - "&6All your games"
+          create-host:
+            tittle: "&3Create a new Host"
+            lore:
+              - "&6Click to create"
+              - "&6a new host"
+          public-hosts:
+            tittle: "All accessible games"
+            lore:
+              - "&6Click to open"
+              - "&6All games list"
+      host-list:
+        tittle: "&f&lGotham UHC&r &7(<current_page>/<total_pages>)"
+      host-create:
+        tittle: "&3Create a new Host - Select a game"
+        messages:
+          creation: "&aHost request received, trying to create host..."
+          no-ticket: "&cNot enough tickets !"
+          creation-error: "&cError, please try again."
+      my-host:
+        tittle: "&3My Hosts"
+        messages:
+          join-error: "&cError, please try again."
+
+  invitation:
+    # <INVITED> = name of player
+    sent: "&aInvitation to '<INVITED>' sent !"
+    not_found: "&6Player '<INVITED>' not found in lobby."
+    deny: "&6Player '<INVITED>' has denied your request."

@@ -1,10 +1,14 @@
 package fr.milekat.infra.workers.utils;
 
+import fr.milekat.infra.Main;
 import fr.milekat.infra.api.classes.AccessStates;
+import fr.milekat.infra.api.classes.User;
+import fr.milekat.infra.storage.exeptions.StorageExecuteException;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.SmartInventory;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.Pagination;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -41,11 +45,23 @@ public class Gui {
         return closeButton;
     }
 
-    public static @NotNull List<String> getPlayerStats(@NotNull Player player) {
-        List<String> stats = new ArrayList<>();
-        stats.add(player.getName());
-        stats.add(player.getUniqueId().toString());
-        return stats;
+    /**
+     * Method to set the player stats button
+     */
+    public static void setPlayerStats(Player player, InventoryContents contents, int row, int column) {
+        Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), ()-> {
+            try {
+                User user = Main.getStorage().getUserCache(player.getUniqueId());
+                if (user==null) return;
+                List<String> stats = new ArrayList<>();
+                stats.add(player.getName());
+                stats.add("Tickets: " + user.getTickets());
+                ItemStack playerStats = PlayerHead.getPlayerSkull(player.getName(), "Your stats", stats);
+                contents.set(row, column, ClickableItem.empty(playerStats));
+            } catch (StorageExecuteException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
@@ -54,9 +70,13 @@ public class Gui {
     public static @NotNull ItemStack getIcon(@NotNull String icon) {
         ItemStack itemStack = new ItemStack(Material.BARRIER);
         if (icon.startsWith("t:")) {
-            itemStack = PlayerHead.getTextureSkull(icon);
+            itemStack = PlayerHead.getTextureSkull(icon.substring(2));
         } else {
-            itemStack.setType(Material.valueOf(icon));
+            try {
+                itemStack.setType(Material.valueOf(icon));
+            } catch (IllegalArgumentException exception) {
+                itemStack.setType(Material.BARRIER);
+            }
         }
         return itemStack;
     }
@@ -106,9 +126,7 @@ public class Gui {
 
     public static void pagesDefault(@NotNull Player player, @NotNull InventoryContents contents, GuiPages inventory) {
         contents.fillBorders(Gui.empty());
-        //  Player infos
-        contents.set(0, 4, ClickableItem.empty(
-                PlayerHead.getPlayerSkull(player.getName(), "Your stats", Gui.getPlayerStats(player))));
+        setPlayerStats(player, contents, 0, 4);
         Pagination pagination = contents.pagination();
         pagination.setItemsPerPage(28);
         //  Close GUI
@@ -147,7 +165,7 @@ public class Gui {
         for(int row = fromRow; row <= toRow; row++) {
             for(int column = fromColumn; column <= toColumn; column++) {
                 int index = (column - fromColumn) + ((row - fromRow) * ((toColumn + 1) - fromColumn));
-                if (items.size() <= index) {
+                if (items.size() <= index || items.get(index)==null || items.get(index).getItem()==null) {
                     return;
                 }
                 contents.set(row, column, items.get(index));

@@ -18,7 +18,7 @@ import java.util.Locale;
 public interface MessagingImplementation {
     //  Global settings
     String SEPARATOR = ".";
-    String PREFIX = Main.getFileConfig().getString("messaging.prefix");
+    String PREFIX = Main.getConfigs().getString("messaging.prefix");
 
     //  RabbitMQ settings
     String RABBIT_EXCHANGE_TYPE = "x-rtopic";

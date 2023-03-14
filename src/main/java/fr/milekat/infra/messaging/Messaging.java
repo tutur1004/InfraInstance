@@ -6,13 +6,13 @@ import fr.milekat.infra.messaging.adapter.rabbitmq.SendRabbitMessage;
 import fr.milekat.infra.messaging.adapter.redis.SendRedisMessage;
 import fr.milekat.infra.messaging.exeptions.MessagingLoaderException;
 import fr.milekat.infra.messaging.exeptions.MessagingSendException;
-import org.bukkit.configuration.file.FileConfiguration;
+import fr.milekat.utils.Configs;
 import org.jetbrains.annotations.NotNull;
 
 public class Messaging {
     private final MessagingImplementation messagingImplementation;
 
-    public Messaging(@NotNull FileConfiguration config) throws MessagingLoaderException {
+    public Messaging(@NotNull Configs config) throws MessagingLoaderException {
         try {
             String messagingProvider = config.getString("messaging.type");
             if (Main.DEBUG) {
